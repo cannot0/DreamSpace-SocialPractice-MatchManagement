@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>大学生返家乡实践活动推荐系统</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='common.css') }}">
 
   <!-- ==================== 全局样式 ==================== -->
   <style>
@@ -492,6 +493,23 @@
   </style>
 </head>
 <body>
+
+  <!-- 导航栏 -->
+  <nav class="navbar">
+    <a class="navbar-brand" href="{{ url_for('index') }}">🎓 返家乡推荐系统</a>
+    <div class="navbar-user">
+      <ul class="navbar-nav">
+        <li><a href="{{ url_for('index') }}" class="active">🔍 获取推荐</a></li>
+        <li><a href="{{ url_for('profile') }}">📋 我的画像</a></li>
+        <li><a href="{{ url_for('history') }}">📜 推荐历史</a></li>
+        {% if is_admin %}
+        <li><a href="{{ url_for('admin') }}">⚙️ 管理后台</a></li>
+        {% endif %}
+      </ul>
+      <span class="username">{{ nickname or username }}</span>
+      <a class="btn-logout" href="{{ url_for('logout') }}">退出</a>
+    </div>
+  </nav>
 
   <!-- ==================== Header ==================== -->
   <header class="header">
