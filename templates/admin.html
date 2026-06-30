@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理后台 - 返家乡实践活动推荐系统</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='common.css') }}">
+  <style>
+    .admin-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    .admin-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 12px;
+      background: #fff7e6;
+      border: 1px solid #ffd591;
+      border-radius: 20px;
+      font-size: 12px;
+      color: #fa8c16;
+      font-weight: 500;
+    }
+
+    /* 上传区域 */
+    .upload-area {
+      border: 2px dashed var(--border-color);
+      border-radius: var(--radius);
+      padding: 40px;
+      text-align: center;
+      transition: var(--transition);
+      cursor: pointer;
+      background: #fafbfc;
+    }
+
+    .upload-area:hover {
+      border-color: var(--primary-color);
+      background: var(--primary-light);
+    }
+
+    .upload-area.dragover {
+      border-color: var(--primary-color);
+      background: var(--primary-light);
+    }
+
+    .upload-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    .upload-text {
+      font-size: 16px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .upload-hint {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .upload-input {
+      display: none;
+    }
+
+    .upload-status {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      display: none;
+    }
+
+    .upload-status.success {
+      display: block;
+      background: var(--success-light);
+      border: 1px solid #b7eb8f;
+      color: var(--success-color);
+    }
+
+    .upload-status.error {
+      display: block;
+      background: #fff2f0;
+      border: 1px solid #ffccc7;
+      color: var(--danger-color);
+    }
+
+    /* 用户表格 */
+    .users-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+    }
+
+    .users-table th,
+    .users-table td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 14px;
+    }
+
+    .users-table th {
+      background: #fafbfc;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .users-table tr:hover {
+      background: #fafbfc;
+    }
+
+    .users-table .user-id {
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    .users-count {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .empty-users {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .btn-upload {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 24px;
+      background: var(--primary-color);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      margin-top: 16px;
+    }
+
+    .btn-upload:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-upload:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 导航栏 -->
+  <nav class="navbar">
+    <a class="navbar-brand" href="{{ url_for('admin') }}">🎓 返家乡推荐系统</a>
+    <div class="navbar-user">
+      <ul class="navbar-nav">
+        <li><a href="{{ url_for('index') }}">🔍 获取推荐</a></li>
+        <li><a href="{{ url_for('admin') }}" class="active">⚙️ 管理后台</a></li>
+      </ul>
+      <span class="admin-badge">👑 管理员</span>
+      <span class="username">{{ nickname or username }}</span>
+      <a class="btn-logout" href="{{ url_for('logout') }}">退出</a>
+    </div>
+  </nav>
+
+  <main class="container">
+    <div class="admin-header">
+      <h2>⚙️ 管理后台</h2>
+    </div>
+
+    <!-- Excel 上传卡片 -->
+    <div class="card">
+      <div class="card-title">
+        <span class="icon">📊</span> 活动数据导入
+      </div>
+
+      <div class="upload-area" id="uploadArea">
+        <div class="upload-icon">📁</div>
+        <div class="upload-text">点击或拖拽 Excel 文件到此处</div>
+        <div class="upload-hint">支持 .xlsx 和 .xls 格式</div>
+        <input type="file" class="upload-input" id="fileInput" accept=".xlsx,.xls">
+      </div>
+
+      <div class="upload-status" id="uploadStatus"></div>
+
+      <button class="btn-upload" id="uploadBtn" disabled onclick="handleUpload()">
+        📤 开始导入
+      </button>
+    </div>
+
+    <!-- 用户列表卡片 -->
+    <div class="card">
+      <div class="card-title">
+        <span class="icon">👥</span> 注册用户
+      </div>
+
+      <div class="users-count">共 {{ users|length }} 个注册用户</div>
+
+      {% if users %}
+      <table class="users-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>用户名</th>
+            <th>昵称</th>
+            <th>注册时间</th>
+            <th>最后登录</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in users %}
+          <tr>
+            <td class="user-id">{{ user.id }}</td>
+            <td>{{ user.username }}</td>
+            <td>{{ user.nickname }}</td>
+            <td>{{ user.created_at }}</td>
+            <td>{{ user.last_login or '从未登录' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-users">暂无注册用户</div>
+      {% endif %}
+    </div>
+  </main>
+
+  <script>
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const uploadStatus = document.getElementById('uploadStatus');
+    let selectedFile = null;
+
+    // 点击上传区域触发文件选择
+    uploadArea.addEventListener('click', () => fileInput.click());
+
+    // 拖拽效果
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        handleFileSelect(files[0]);
+      }
+    });
+
+    // 文件选择
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        handleFileSelect(e.target.files[0]);
+      }
+    });
+
+    function handleFileSelect(file) {
+      if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
+        showStatus('error', '请选择 Excel 文件（.xlsx 或 .xls）');
+        return;
+      }
+      selectedFile = file;
+      uploadBtn.disabled = false;
+      uploadArea.querySelector('.upload-text').textContent = '已选择：' + file.name;
+      showStatus('success', '文件已就绪，点击"开始导入"按钮');
+    }
+
+    async function handleUpload() {
+      if (!selectedFile) return;
+
+      uploadBtn.disabled = true;
+      uploadBtn.textContent = '⏳ 导入中...';
+
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+
+      try {
+        const response = await fetch('/admin/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          showStatus('success', '✅ ' + (data.message || '导入成功'));
+        } else {
+          showStatus('error', '❌ ' + (data.error || '导入失败'));
+        }
+      } catch (err) {
+        showStatus('error', '❌ 网络错误：' + err.message);
+      } finally {
+        uploadBtn.disabled = false;
+        uploadBtn.textContent = '📤 开始导入';
+      }
+    }
+
+    function showStatus(type, message) {
+      uploadStatus.className = 'upload-status ' + type;
+      uploadStatus.textContent = message;
+    }
+  </script>
+
+</body>
+</html>
