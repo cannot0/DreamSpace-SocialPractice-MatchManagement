@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>推荐历史 - 返家乡实践活动推荐系统</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='common.css') }}">
+  <style>
+    .history-item {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-card);
+      padding: 24px;
+      margin-bottom: 16px;
+      transition: var(--transition);
+    }
+
+    .history-item:hover {
+      box-shadow: var(--shadow-card-hover);
+    }
+
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .history-time {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .history-profile {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .profile-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 12px;
+      background: var(--primary-light);
+      color: var(--primary-color);
+      border-radius: 20px;
+      font-size: 13px;
+    }
+
+    .rec-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+    }
+
+    .rec-item {
+      padding: 14px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      background: #fafbfc;
+    }
+
+    .rec-item-rank {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--primary-color);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      margin-right: 8px;
+    }
+
+    .rec-item-rank.rank-1 { background: #f5a623; }
+    .rec-item-rank.rank-2 { background: #a0a0b0; }
+    .rec-item-rank.rank-3 { background: #cd7f32; }
+
+    .rec-item-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    .rec-item-score {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .rec-item-score strong {
+      color: var(--primary-color);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+
+    .empty-state .icon {
+      font-size: 56px;
+      margin-bottom: 16px;
+    }
+
+    .empty-state p {
+      font-size: 16px;
+    }
+
+    .history-count {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 导航栏 -->
+  <nav class="navbar">
+    <a class="navbar-brand" href="{{ url_for('index') }}">🎓 返家乡推荐系统</a>
+    <div class="navbar-user">
+      <ul class="navbar-nav">
+        <li><a href="{{ url_for('index') }}">🔍 获取推荐</a></li>
+        <li><a href="{{ url_for('profile') }}">📋 我的画像</a></li>
+        <li><a href="{{ url_for('history') }}" class="active">📜 推荐历史</a></li>
+        {% if is_admin %}
+        <li><a href="{{ url_for('admin') }}">⚙️ 管理后台</a></li>
+        {% endif %}
+      </ul>
+      <span class="username">{{ nickname or username }}</span>
+      <a class="btn-logout" href="{{ url_for('logout') }}">退出</a>
+    </div>
+  </nav>
+
+  <main class="container">
+    <div class="card">
+      <div class="card-title">
+        <span class="icon">📜</span> 推荐历史
+      </div>
+
+      {% if records %}
+      <div class="history-count">共 {{ records|length }} 条推荐记录</div>
+
+      {% for record in records %}
+      <div class="history-item">
+        <div class="history-header">
+          <div class="history-time">🕐 {{ record.created_at }}</div>
+        </div>
+
+        <!-- 画像快照 -->
+        <div class="history-profile">
+          {% if record.profile_snapshot.get('major') %}
+          <span class="profile-tag">📚 {{ record.profile_snapshot.major }}</span>
+          {% endif %}
+          {% if record.profile_snapshot.get('province') %}
+          <span class="profile-tag">📍 {{ record.profile_snapshot.province }}</span>
+          {% endif %}
+          {% if record.profile_snapshot.get('skills') %}
+          <span class="profile-tag">💡 {{ record.profile_snapshot.skills }}</span>
+          {% endif %}
+        </div>
+
+        <!-- 推荐结果 -->
+        <div class="rec-list">
+          {% for rec in record.result.get('recommendations', [])[:5] %}
+          <div class="rec-item">
+            <div class="rec-item-title">
+              <span class="rec-item-rank {% if rec.rank <= 3 %}rank-{{ rec.rank }}{% endif %}">{{ rec.rank }}</span>
+              {{ rec.title }}
+            </div>
+            <div class="rec-item-score">
+              匹配度：<strong>{{ rec.match_score }}</strong>
+              {% if rec.match_reason %}
+              <br>💡 {{ rec.match_reason }}
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+
+      {% else %}
+      <div class="empty-state">
+        <div class="icon">📭</div>
+        <p>暂无推荐记录</p>
+        <p style="font-size: 14px; margin-top: 8px;">
+          <a href="{{ url_for('index') }}" style="color: var(--primary-color);">去获取推荐 →</a>
+        </p>
+      </div>
+      {% endif %}
+    </div>
+  </main>
+
+</body>
+</html>
