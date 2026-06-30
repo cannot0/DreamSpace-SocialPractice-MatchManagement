@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我的画像 - 返家乡实践活动推荐系统</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='common.css') }}">
+</head>
+<body>
+
+  <!-- 导航栏 -->
+  <nav class="navbar">
+    <a class="navbar-brand" href="{{ url_for('index') }}">🎓 返家乡推荐系统</a>
+    <div class="navbar-user">
+      <ul class="navbar-nav">
+        <li><a href="{{ url_for('index') }}">🔍 获取推荐</a></li>
+        <li><a href="{{ url_for('profile') }}" class="active">📋 我的画像</a></li>
+        <li><a href="{{ url_for('history') }}">📜 推荐历史</a></li>
+        {% if is_admin %}
+        <li><a href="{{ url_for('admin') }}">⚙️ 管理后台</a></li>
+        {% endif %}
+      </ul>
+      <span class="username">{{ nickname or username }}</span>
+      <a class="btn-logout" href="{{ url_for('logout') }}">退出</a>
+    </div>
+  </nav>
+
+  <main class="container">
+    <div class="card">
+      <div class="card-title">
+        <span class="icon">📋</span> 我的学生画像
+      </div>
+
+      {% if saved %}
+      <div style="background: var(--success-light); border: 1px solid #b7eb8f; border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 20px; font-size: 14px; color: var(--success-color);">
+        ✅ 画像已保存！下次获取推荐时将自动填充。
+      </div>
+      {% endif %}
+
+      <form method="POST" action="{{ url_for('profile') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="major">专业</label>
+            <input type="text" id="major" name="major" placeholder="例如：智能科学与技术"
+                   value="{{ profile.get('major', '') }}">
+          </div>
+
+          <div class="form-group">
+            <label for="grade">年级</label>
+            <input type="text" id="grade" name="grade" placeholder="例如：大三"
+                   value="{{ profile.get('grade', '') }}">
+          </div>
+
+          <div class="form-group">
+            <label for="skills">技能</label>
+            <input type="text" id="skills" name="skills" placeholder="例如：Python，数据分析"
+                   value="{{ profile.get('skills', '') }}">
+            <span class="form-hint">多个技能用逗号分隔</span>
+          </div>
+
+          <div class="form-group">
+            <label for="available_start">可参加开始日期</label>
+            <input type="date" id="available_start" name="available_start"
+                   value="{{ profile.get('available_start', '') }}">
+          </div>
+
+          <div class="form-group">
+            <label for="available_end">可参加结束日期</label>
+            <input type="date" id="available_end" name="available_end"
+                   value="{{ profile.get('available_end', '') }}">
+          </div>
+
+          <div class="form-group">
+            <label for="province">省份</label>
+            <input type="text" id="province" name="province" placeholder="例如：广东省"
+                   value="{{ profile.get('province', '') }}">
+          </div>
+
+          <div class="form-group">
+            <label for="city">城市</label>
+            <input type="text" id="city" name="city" placeholder="例如：广州市"
+                   value="{{ profile.get('city', '') }}">
+          </div>
+
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label for="preference">兴趣偏好</label>
+            <input type="text" id="preference" name="preference" placeholder="例如：科技创新、社区服务、文化传承等"
+                   value="{{ profile.get('preference', '') }}">
+          </div>
+        </div>
+
+        <div style="margin-top: 24px;">
+          <button type="submit" class="btn btn-primary">💾 保存画像</button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+</body>
+</html>

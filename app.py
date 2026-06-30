@@ -189,6 +189,7 @@ def profile():
         saved_profile = get_user_profile(user_id) if user_id != 0 else None
         return render_template("profile.html",
                                profile=saved_profile or {},
+                               saved=request.args.get('saved') == '1',
                                username=session.get('username'),
                                nickname=session.get('nickname'),
                                is_admin=session.get('is_admin', False))
@@ -211,7 +212,8 @@ def profile():
     if user_id != 0:
         save_user_profile(user_id, profile_data)
 
-    return redirect(url_for('profile'))
+    # 保存成功后重定向，带上 saved 参数
+    return redirect(url_for('profile', saved='1'))
 
 
 @app.route("/history")
