@@ -1,115 +1,98 @@
-"""mock活动数据查询。
+"""活动数据查询模块。
 
-实际接入MySQL时，可将本文件中的静态数据替换为数据库查询逻辑。
+从SQL Server数据库查询活动数据，支持省份、专业标签筛选。
 """
 
+import logging
 
-MOCK_ACTIVITIES = [
-    {
-        "activity_id": "A001",
-        "title": "广州智慧社区数据分析实践",
-        "org_name": "广州市青年志愿服务中心",
-        "province": "广东",
-        "city": "广州",
-        "category": "社会实践",
-        "major_tags": ["计算机科学与技术", "软件工程", "数据科学"],
-        "skill_tags": ["Python", "数据分析", "Excel"],
-        "start_date": "2025-07-15",
-        "end_date": "2025-08-10",
-        "quota": 30,
-        "source_url": "https://example.com/activities/A001",
-    },
-    {
-        "activity_id": "A002",
-        "title": "深圳互联网企业暑期实习体验营",
-        "org_name": "深圳市创新创业服务协会",
-        "province": "广东",
-        "city": "深圳",
-        "category": "企业实习",
-        "major_tags": ["计算机科学与技术", "信息管理", "电子商务"],
-        "skill_tags": ["Python", "产品调研", "数据分析"],
-        "start_date": "2025-07-20",
-        "end_date": "2025-08-15",
-        "quota": 20,
-        "source_url": "https://example.com/activities/A002",
-    },
-    {
-        "activity_id": "A003",
-        "title": "佛山制造业数字化转型调研",
-        "org_name": "佛山市工信局实践基地",
-        "province": "广东",
-        "city": "佛山",
-        "category": "基层调研",
-        "major_tags": ["计算机科学与技术", "自动化", "工业工程"],
-        "skill_tags": ["数据分析", "问卷设计", "报告写作"],
-        "start_date": "2025-08-01",
-        "end_date": "2025-08-25",
-        "quota": 25,
-        "source_url": "https://example.com/activities/A003",
-    },
-    {
-        "activity_id": "A004",
-        "title": "广州中小学编程公益课堂",
-        "org_name": "广州市少年宫",
-        "province": "广东",
-        "city": "广州",
-        "category": "志愿服务",
-        "major_tags": ["计算机科学与技术", "教育技术学"],
-        "skill_tags": ["Python", "Scratch", "沟通表达"],
-        "start_date": "2025-07-01",
-        "end_date": "2025-07-09",
-        "quota": 40,
-        "source_url": "https://example.com/activities/A004",
-    },
-    {
-        "activity_id": "A005",
-        "title": "杭州乡村文旅新媒体推广实践",
-        "org_name": "杭州市乡村振兴实践中心",
-        "province": "浙江",
-        "city": "杭州",
-        "category": "乡村振兴",
-        "major_tags": ["新闻传播学", "旅游管理", "市场营销"],
-        "skill_tags": ["短视频", "文案策划", "摄影"],
-        "start_date": "2025-07-18",
-        "end_date": "2025-08-05",
-        "quota": 15,
-        "source_url": "https://example.com/activities/A005",
-    },
-    {
-        "activity_id": "A006",
-        "title": "珠海政务数据治理见习项目",
-        "org_name": "珠海市政务服务数据管理局",
-        "province": "广东",
-        "city": "珠海",
-        "category": "政务见习",
-        "major_tags": ["计算机科学与技术", "网络空间安全", "公共管理"],
-        "skill_tags": ["数据分析", "SQL", "信息安全"],
-        "start_date": "2025-08-16",
-        "end_date": "2025-08-31",
-        "quota": 12,
-        "source_url": "https://example.com/activities/A006",
-    },
-]
+import pyodbc
+
+from ..config import DB_SERVER, DB_DATABASE, DB_TRUSTED_CONNECTION
+
+logger = logging.getLogger(__name__)
+
+
+def _get_connection():
+    """获取数据库连接。"""
+    conn_str = (
+        f"DRIVER={{ODBC Driver 17 for SQL Server}};"
+        f"SERVER={DB_SERVER};"
+        f"DATABASE={DB_DATABASE};"
+        f"Trusted_Connection={DB_TRUSTED_CONNECTION};"
+    )
+    return pyodbc.connect(conn_str)
+
+
+def _parse_tags(tags_str: str) -> list:
+    """将逗号分隔的标签字符串解析为列表。"""
+    if not tags_str:
+        return []
+    return [tag.strip() for tag in tags_str.split(",") if tag.strip()]
 
 
 def get_activities(province=None, major_tag=None, limit=20) -> list:
-    """获取候选活动，当前为mock版本。"""
-    activities = MOCK_ACTIVITIES
+    """从数据库获取候选活动。
 
-    if province:
-        province_matched = [
-            activity for activity in activities if activity.get("province") == province
-        ]
-        if province_matched:
-            activities = province_matched
+    使用v_activity_full视图查询，该视图已聚合活动主表、详情表和标签表。
 
-    if major_tag:
-        major_matched = [
-            activity
-            for activity in activities
-            if major_tag in activity.get("major_tags", [])
-        ]
-        if major_matched:
-            activities = major_matched
+    Args:
+        province: 省份筛选条件
+        major_tag: 专业标签筛选条件
+        limit: 返回数量限制
 
-    return activities[:limit]
+    Returns:
+        活动列表，每个活动为字典格式
+    """
+    try:
+        conn = _get_connection()
+        cursor = conn.cursor()
+
+        # 构建查询语句
+        query = """
+            SELECT
+                project_id, activity_id, title, org_name,
+                province, city, district, category,
+                start_date, end_date, quota, source_url,
+                major_tags, skill_tags
+            FROM v_activity_full
+            WHERE 1=1
+        """
+        params = []
+
+        if province:
+            query += " AND province = ?"
+            params.append(province)
+
+        if major_tag:
+            query += " AND (',' + major_tags + ',') LIKE ?"
+            params.append(f"%,{major_tag},%")
+
+        query += " ORDER BY crawled_at DESC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY"
+        params.append(limit)
+
+        cursor.execute(query, params)
+        columns = [column[0] for column in cursor.description]
+        rows = cursor.fetchall()
+
+        activities = []
+        for row in rows:
+            activity = dict(zip(columns, row))
+            # 解析标签字符串为列表
+            activity["major_tags"] = _parse_tags(activity.get("major_tags", ""))
+            activity["skill_tags"] = _parse_tags(activity.get("skill_tags", ""))
+            # 转换日期为字符串格式
+            if activity.get("start_date"):
+                activity["start_date"] = str(activity["start_date"])
+            if activity.get("end_date"):
+                activity["end_date"] = str(activity["end_date"])
+            activities.append(activity)
+
+        logger.info("查询到 %d 个活动", len(activities))
+        return activities
+
+    except pyodbc.Error as e:
+        logger.error("数据库查询失败: %s", e)
+        return []
+    finally:
+        if "conn" in locals():
+            conn.close()
