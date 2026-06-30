@@ -23,3 +23,10 @@ DB_DATABASE = os.getenv("DB_DATABASE", "hometown_practice")
 DB_TRUSTED_CONNECTION = os.getenv("DB_TRUSTED_CONNECTION", "yes")
 DB_USER = os.getenv("DB_USER", "")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "")
+
+# Session 密钥
+SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-in-production")
+
+# 管理员配置
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "")
