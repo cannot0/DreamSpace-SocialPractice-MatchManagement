@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# 虚拟环境
+.venv/
+.venv.bak/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 环境变量（包含密钥，不要推到公开仓库）
+.env
+
+# Vendor（第三方库，不需要上传）
+.vendor/
+
+# Claude 本地配置
+.claude/
+.codegraph/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+*.log

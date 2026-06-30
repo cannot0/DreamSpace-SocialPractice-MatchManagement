@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>大学生返家乡实践活动推荐系统</title>
+
+  <!-- ==================== 全局样式 ==================== -->
+  <style>
+    /* ---------- CSS 变量：统一管理配色 ---------- */
+    :root {
+      --primary-color: #1677ff;
+      --primary-hover: #4096ff;
+      --primary-light: #e6f4ff;
+      --success-color: #52c41a;
+      --success-light: #f6ffed;
+      --warning-color: #fa8c16;
+      --warning-light: #fff7e6;
+      --danger-color: #ff4d4f;
+      --bg-color: #f5f7fa;
+      --card-bg: #ffffff;
+      --text-primary: #1d1d1f;
+      --text-secondary: #6e6e73;
+      --text-muted: #86868b;
+      --border-color: #e8e8ed;
+      --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.08);
+      --shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
+      --radius: 12px;
+      --radius-sm: 8px;
+      --transition: all 0.25s ease;
+
+      /* 排名专用色 */
+      --gold: #f5a623;
+      --silver: #a0a0b0;
+      --bronze: #cd7f32;
+    }
+
+    /* ---------- 全局重置 ---------- */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+                   "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+      background: var(--bg-color);
+      color: var(--text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ---------- Header ---------- */
+    .header {
+      background: linear-gradient(135deg, #1677ff 0%, #4096ff 50%, #69b1ff 100%);
+      color: #fff;
+      padding: 40px 20px 36px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 30px;
+      background: var(--bg-color);
+      border-radius: 30px 30px 0 0;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      font-size: 15px;
+      opacity: 0.9;
+      font-weight: 400;
+    }
+
+    /* ---------- 主容器 ---------- */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 20px 60px;
+    }
+
+    /* ---------- 通用卡片 ---------- */
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-card);
+      padding: 28px 32px;
+      margin-bottom: 24px;
+      transition: var(--transition);
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--primary-light);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-title .icon {
+      font-size: 22px;
+    }
+
+    /* ---------- 表单布局 ---------- */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group label {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    .form-group input {
+      height: 42px;
+      padding: 0 14px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      color: var(--text-primary);
+      background: #fafbfc;
+      transition: var(--transition);
+      outline: none;
+    }
+
+    .form-group input:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px var(--primary-light);
+      background: #fff;
+    }
+
+    .form-group input::placeholder {
+      color: #c0c4cc;
+    }
+
+    .form-hint {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* ---------- 技能标签输入 ---------- */
+    .tag-input-wrapper {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      background: #fafbfc;
+      min-height: 44px;
+      align-items: center;
+      cursor: text;
+      transition: var(--transition);
+    }
+
+    .tag-input-wrapper:focus-within {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px var(--primary-light);
+      background: #fff;
+    }
+
+    .tag-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      background: var(--primary-light);
+      color: var(--primary-color);
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .tag-item .tag-remove {
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+      opacity: 0.6;
+      transition: var(--transition);
+    }
+
+    .tag-item .tag-remove:hover {
+      opacity: 1;
+    }
+
+    .tag-input-inner {
+      border: none;
+      outline: none;
+      flex: 1;
+      min-width: 100px;
+      font-size: 14px;
+      background: transparent;
+      padding: 4px 0;
+    }
+
+    /* ---------- 按钮 ---------- */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      height: 48px;
+      padding: 0 32px;
+      font-size: 16px;
+      font-weight: 600;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: var(--transition);
+      letter-spacing: 0.5px;
+    }
+
+    .btn-primary {
+      background: var(--primary-color);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      box-shadow: 0 4px 16px rgba(22, 119, 255, 0.35);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-block {
+      width: 100%;
+      display: flex;
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* ---------- 推荐结果区域 ---------- */
+    .results-section {
+      display: none;
+    }
+
+    .results-section.active {
+      display: block;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+    }
+
+    /* ---------- 推荐卡片 ---------- */
+    .rec-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-card);
+      padding: 24px;
+      transition: var(--transition);
+      position: relative;
+      border: 2px solid transparent;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .rec-card:hover {
+      box-shadow: var(--shadow-card-hover);
+      transform: translateY(-4px);
+    }
+
+    /* Top3 特殊样式 */
+    .rec-card.rank-1 {
+      border-color: var(--gold);
+      transform: scale(1.02);
+    }
+
+    .rec-card.rank-2 {
+      border-color: var(--silver);
+      transform: scale(1.01);
+    }
+
+    .rec-card.rank-3 {
+      border-color: var(--bronze);
+    }
+
+    .rec-card.rank-1:hover,
+    .rec-card.rank-2:hover {
+      transform: scale(1.03);
+    }
+
+    .rec-card.rank-3:hover {
+      transform: scale(1.01) translateY(-4px);
+    }
+
+    /* 卡片头部：排名 + 标题 */
+    .rec-card-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .rec-rank {
+      flex-shrink: 0;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 16px;
+      color: #fff;
+      background: var(--primary-color);
+    }
+
+    .rec-card.rank-1 .rec-rank { background: var(--gold); }
+    .rec-card.rank-2 .rec-rank { background: var(--silver); }
+    .rec-card.rank-3 .rec-rank { background: var(--bronze); }
+
+    .rec-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.4;
+      flex: 1;
+    }
+
+    /* 分数进度条 */
+    .rec-score {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .rec-score-label {
+      font-size: 13px;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .progress-bar {
+      flex: 1;
+      height: 8px;
+      background: #eeeef2;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
+      width: 0;
+    }
+
+    /* 分数颜色规则 */
+    .progress-fill.score-high { background: var(--success-color); }    /* 90+ */
+    .progress-fill.score-good { background: var(--primary-color); }    /* 80+ */
+    .progress-fill.score-mid  { background: var(--warning-color); }    /* 70+ */
+    .progress-fill.score-low  { background: #bbb; }                    /* <70 */
+
+    .rec-score-value {
+      font-weight: 700;
+      font-size: 18px;
+      white-space: nowrap;
+    }
+
+    .score-high-text { color: var(--success-color); }
+    .score-good-text { color: var(--primary-color); }
+    .score-mid-text  { color: var(--warning-color); }
+    .score-low-text  { color: #999; }
+
+    /* 推荐理由 & 亮点 */
+    .rec-reason,
+    .rec-highlight {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .rec-highlight {
+      padding: 10px 14px;
+      background: #fafbfc;
+      border-radius: var(--radius-sm);
+      border-left: 3px solid var(--primary-color);
+    }
+
+    .rec-highlight::before {
+      content: "✨ ";
+    }
+
+    /* ---------- 状态展示：Loading / Empty / Error ---------- */
+    .state-box {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 20px;
+      text-align: center;
+      gap: 16px;
+    }
+
+    .state-box.active {
+      display: flex;
+      animation: fadeIn 0.3s ease;
+    }
+
+    /* Spinner */
+    .spinner {
+      width: 44px;
+      height: 44px;
+      border: 4px solid var(--border-color);
+      border-top-color: var(--primary-color);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    .state-text {
+      font-size: 16px;
+      color: var(--text-secondary);
+    }
+
+    .state-sub {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .state-icon {
+      font-size: 56px;
+    }
+
+    /* ---------- Footer ---------- */
+    .footer {
+      text-align: center;
+      padding: 24px;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    /* ---------- 动画关键帧 ---------- */
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ---------- 响应式 ---------- */
+    @media (max-width: 640px) {
+      .header h1 { font-size: 22px; }
+      .header p  { font-size: 13px; }
+      .card       { padding: 20px 16px; }
+      .form-grid  { grid-template-columns: 1fr; }
+      .results-grid { grid-template-columns: 1fr; }
+      .rec-card.rank-1,
+      .rec-card.rank-2 { transform: none; }
+      .rec-card.rank-1:hover,
+      .rec-card.rank-2:hover { transform: translateY(-4px); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==================== Header ==================== -->
+  <header class="header">
+    <h1>🎓 大学生返家乡实践活动推荐系统</h1>
+    <p>基于 AI 的个性化实践项目匹配，助你找到最适合的返家乡活动</p>
+  </header>
+
+  <!-- ==================== 主内容区 ==================== -->
+  <main class="container">
+
+    <!-- ===== 表单卡片 ===== -->
+    <div class="card" id="formCard">
+      <div class="card-title">
+        <span class="icon">📋</span> 学生画像
+      </div>
+
+      <div class="form-grid">
+
+        <!-- 基本信息 -->
+        <div class="form-group">
+          <label for="major">专业 *</label>
+          <input type="text" id="major" placeholder="例如：智能科学与技术" required>
+        </div>
+
+        <div class="form-group">
+          <label for="grade">年级</label>
+          <input type="text" id="grade" placeholder="例如：大三">
+        </div>
+
+        <!-- 技能（自由输入，标签形式） -->
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label>技能</label>
+          <div class="tag-input-wrapper" id="skillTagWrapper">
+            <input
+              type="text"
+              class="tag-input-inner"
+              id="skillInput"
+              placeholder="输入技能后按回车添加，例如：Python、数据分析"
+            >
+          </div>
+          <span class="form-hint">按回车键添加技能标签，AI 将据此分析匹配度</span>
+        </div>
+
+        <!-- 时间段 -->
+        <div class="form-group">
+          <label for="startDate">可参加开始日期 *</label>
+          <input type="date" id="startDate" required>
+        </div>
+
+        <div class="form-group">
+          <label for="endDate">可参加结束日期 *</label>
+          <input type="date" id="endDate" required>
+        </div>
+
+        <!-- 地区 -->
+        <div class="form-group">
+          <label for="province">省份 *</label>
+          <input type="text" id="province" placeholder="例如：广东省" required>
+        </div>
+
+        <div class="form-group">
+          <label for="city">城市</label>
+          <input type="text" id="city" placeholder="例如：广州市">
+        </div>
+
+        <!-- 偏好（自由输入） -->
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label for="preference">兴趣偏好</label>
+          <input type="text" id="preference" placeholder="例如：科技创新、社区服务、文化传承等，AI 将智能分析">
+          <span class="form-hint">可以自由描述你感兴趣的方向，AI 将智能理解</span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===== 推荐按钮 ===== -->
+    <button class="btn btn-primary btn-block" id="submitBtn" onclick="handleSubmit()">
+      🔍 获取推荐
+    </button>
+
+    <!-- ===== 推荐结果区域 ===== -->
+    <div class="results-section" id="resultsSection">
+
+      <!-- Loading 状态 -->
+      <div class="card state-box" id="loadingState">
+        <div class="spinner"></div>
+        <div class="state-text">正在生成推荐结果...</div>
+        <div class="state-sub">AI 正在分析你的画像并匹配最佳活动</div>
+      </div>
+
+      <!-- Empty 状态 -->
+      <div class="card state-box" id="emptyState">
+        <div class="state-icon">📭</div>
+        <div class="state-text">暂无匹配活动</div>
+        <div class="state-sub">请尝试调整技能或兴趣偏好后重新获取推荐</div>
+      </div>
+
+      <!-- Error 状态 -->
+      <div class="card state-box" id="errorState">
+        <div class="state-icon">⚠️</div>
+        <div class="state-text">请求失败</div>
+        <div class="state-sub" id="errorMessage">请检查后端服务是否启动</div>
+      </div>
+
+      <!-- 结果卡片容器 -->
+      <div class="results-grid" id="resultsGrid"></div>
+    </div>
+
+  </main>
+
+  <!-- ==================== Footer ==================== -->
+  <footer class="footer">
+    大学生返家乡实践活动推荐系统 · Powered by AI
+  </footer>
+
+  <!-- ==================== JavaScript：模块化架构 ==================== -->
+  {% raw %}<script>
+  /* ==================================================================
+   *  1. DOM 引用：统一管理所有选择器
+   * ================================================================== */
+  const DOM = {
+    formCard:       document.getElementById('formCard'),
+    submitBtn:      document.getElementById('submitBtn'),
+
+    /* 表单字段 */
+    major:          document.getElementById('major'),
+    grade:          document.getElementById('grade'),
+    skillWrapper:   document.getElementById('skillTagWrapper'),
+    skillInput:     document.getElementById('skillInput'),
+    startDate:      document.getElementById('startDate'),
+    endDate:        document.getElementById('endDate'),
+    province:       document.getElementById('province'),
+    city:           document.getElementById('city'),
+    preference:     document.getElementById('preference'),
+
+    /* 结果区域 */
+    resultsSection:  document.getElementById('resultsSection'),
+    loadingState:    document.getElementById('loadingState'),
+    emptyState:      document.getElementById('emptyState'),
+    errorState:      document.getElementById('errorState'),
+    errorMessage:    document.getElementById('errorMessage'),
+    resultsGrid:     document.getElementById('resultsGrid'),
+  };
+
+  /* ==================================================================
+   *  2. 技能标签管理
+   * ================================================================== */
+  const FormManager = {
+    /* 存储已添加的技能标签 */
+    _skills: [],
+
+    /**
+     * 初始化：绑定标签输入事件
+     */
+    init() {
+      DOM.skillInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const value = DOM.skillInput.value.trim();
+          if (value) {
+            this.addSkill(value);
+            DOM.skillInput.value = '';
+          }
+        }
+      });
+
+      /* 点击 wrapper 聚焦输入框 */
+      DOM.skillWrapper.addEventListener('click', () => {
+        DOM.skillInput.focus();
+      });
+
+      /* 回删：输入框为空时按 Backspace 删除最后一个标签 */
+      DOM.skillInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && DOM.skillInput.value === '' && this._skills.length > 0) {
+          this.removeSkill(this._skills.length - 1);
+        }
+      });
+    },
+
+    /** 添加技能标签 */
+    addSkill(text) {
+      /* 去重 */
+      if (this._skills.includes(text)) return;
+      this._skills.push(text);
+      this._render();
+    },
+
+    /** 移除技能标签 */
+    removeSkill(index) {
+      this._skills.splice(index, 1);
+      this._render();
+    },
+
+    /** 重新渲染标签 */
+    _render() {
+      /* 清除现有的标签 DOM（保留输入框） */
+      DOM.skillWrapper.querySelectorAll('.tag-item').forEach(el => el.remove());
+
+      this._skills.forEach((skill, i) => {
+        const tag = document.createElement('span');
+        tag.className = 'tag-item';
+        tag.innerHTML = `${skill}<span class="tag-remove" data-index="${i}">&times;</span>`;
+        DOM.skillWrapper.insertBefore(tag, DOM.skillInput);
+      });
+
+      /* 绑定删除事件 */
+      DOM.skillWrapper.querySelectorAll('.tag-remove').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const idx = parseInt(btn.dataset.index);
+          this.removeSkill(idx);
+        });
+      });
+    },
+
+    /** 获取当前所有技能 */
+    getSkills() {
+      return [...this._skills];
+    },
+
+    /**
+     * 收集整个表单数据
+     * @returns {Object} 用户画像
+     */
+    getFormData() {
+      return {
+        major:           DOM.major.value.trim(),
+        grade:           DOM.grade.value.trim(),
+        skills:          this.getSkills().join('，'),
+        available_start: DOM.startDate.value,
+        available_end:   DOM.endDate.value,
+        province:        DOM.province.value.trim(),
+        city:            DOM.city.value.trim(),
+        preference:      DOM.preference.value.trim(),
+      };
+    },
+
+    /**
+     * 验证必填字段
+     * @returns {Object} { valid: boolean, message: string }
+     */
+    validate() {
+      const data = this.getFormData();
+      const required = [
+        { field: 'major',           label: '专业' },
+        { field: 'available_start', label: '开始日期' },
+        { field: 'available_end',   label: '结束日期' },
+        { field: 'province',        label: '省份' },
+      ];
+
+      for (const r of required) {
+        if (!data[r.field]) {
+          return { valid: false, message: `请填写「${r.label}」` };
+        }
+      }
+
+      return { valid: true, message: '' };
+    },
+  };
+
+  /* ==================================================================
+   *  3. API 调用层
+   * ================================================================== */
+  const API = {
+    /**
+     * 调用推荐接口
+     * @param {Object} profile 学生画像
+     * @returns {Promise<Object>} 推荐结果
+     */
+    async getRecommendations(profile) {
+      const response = await fetch('/api/recommend', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(profile),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      return data;
+    },
+  };
+
+  /* ==================================================================
+   *  4. UI 状态管理
+   * ================================================================== */
+  const UI = {
+    /**
+     * 切换结果区域的状态视图
+     * @param {'loading'|'empty'|'error'|'results'|'hidden'} state
+     */
+    setState(state) {
+      /* 隐藏所有状态 */
+      [DOM.loadingState, DOM.emptyState, DOM.errorState, DOM.resultsGrid].forEach(el => {
+        el.classList.remove('active');
+      });
+
+      if (state === 'hidden') {
+        DOM.resultsSection.classList.remove('active');
+        return;
+      }
+
+      DOM.resultsSection.classList.add('active');
+
+      switch (state) {
+        case 'loading':
+          DOM.loadingState.classList.add('active');
+          break;
+        case 'empty':
+          DOM.emptyState.classList.add('active');
+          break;
+        case 'error':
+          DOM.errorState.classList.add('active');
+          break;
+        case 'results':
+          DOM.resultsGrid.classList.add('active');
+          break;
+      }
+    },
+
+    /** 显示错误信息 */
+    showError(message) {
+      DOM.errorMessage.textContent = message || '请检查后端服务是否启动';
+      this.setState('error');
+    },
+
+    /** 显示加载状态 */
+    showLoading() {
+      this.setState('loading');
+    },
+
+    /**
+     * 控制提交按钮状态
+     * @param {boolean} disabled 是否禁用
+     * @param {string} text 按钮文字
+     */
+    setSubmitButton(disabled, text) {
+      DOM.submitBtn.disabled = disabled;
+      DOM.submitBtn.textContent = text || '🔍 获取推荐';
+    },
+  };
+
+  /* ==================================================================
+   *  5. 推荐结果渲染器
+   * ================================================================== */
+  const RecommendationRenderer = {
+    /**
+     * 根据分数获取进度条和文字的 CSS 类名
+     * @param {number} score
+     * @returns {{ barClass: string, textClass: string }}
+     */
+    _scoreClass(score) {
+      if (score >= 90) return { barClass: 'score-high', textClass: 'score-high-text' };
+      if (score >= 80) return { barClass: 'score-good', textClass: 'score-good-text' };
+      if (score >= 70) return { barClass: 'score-mid',  textClass: 'score-mid-text'  };
+      return             { barClass: 'score-low',  textClass: 'score-low-text'  };
+    },
+
+    /**
+     * 渲染全部推荐卡片
+     * @param {Array} recommendations 推荐列表
+     */
+    renderCards(recommendations) {
+      /* 清空旧结果 */
+      DOM.resultsGrid.innerHTML = '';
+
+      if (!recommendations || recommendations.length === 0) {
+        UI.setState('empty');
+        return;
+      }
+
+      recommendations.forEach(item => {
+        DOM.resultsGrid.appendChild(this._createCard(item));
+      });
+
+      UI.setState('results');
+
+      /* 触发进度条动画（延迟一帧让 CSS transition 生效） */
+      requestAnimationFrame(() => {
+        DOM.resultsGrid.querySelectorAll('.progress-fill').forEach(bar => {
+          const target = bar.dataset.width;
+          bar.style.width = target + '%';
+        });
+      });
+    },
+
+    /**
+     * 创建单张推荐卡片
+     * @param {Object} item 单条推荐
+     * @returns {HTMLElement}
+     */
+    _createCard(item) {
+      const rank      = item.rank       || 0;
+      const title     = item.title      || '未知活动';
+      const score     = item.match_score || 0;
+      const reason    = item.match_reason || '';
+      const highlight = item.highlight  || '';
+      const { barClass, textClass } = this._scoreClass(score);
+
+      /* 排名 emoji */
+      const rankEmoji = { 1: '🥇', 2: '🥈', 3: '🥉' };
+
+      const card = document.createElement('div');
+      card.className = 'rec-card';
+
+      /* Top3 特殊样式 */
+      if (rank <= 3) {
+        card.classList.add(`rank-${rank}`);
+      }
+
+      card.innerHTML = `
+        <div class="rec-card-header">
+          <div class="rec-rank">${rankEmoji[rank] || rank}</div>
+          <div class="rec-title">${this._escape(title)}</div>
+        </div>
+
+        <div class="rec-score">
+          <span class="rec-score-label">匹配度</span>
+          <div class="progress-bar">
+            <div class="progress-fill ${barClass}" data-width="${score}" style="width:0%"></div>
+          </div>
+          <span class="rec-score-value ${textClass}">${score}</span>
+        </div>
+
+        ${reason ? `<div class="rec-reason">💡 ${this._escape(reason)}</div>` : ''}
+        ${highlight ? `<div class="rec-highlight">${this._escape(highlight)}</div>` : ''}
+      `;
+
+      return card;
+    },
+
+    /** 简单的 XSS 防护 */
+    _escape(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    },
+  };
+
+  /* ==================================================================
+   *  6. 主流程：提交处理
+   * ================================================================== */
+  async function handleSubmit() {
+    /* 6.1 表单验证 */
+    const validation = FormManager.validate();
+    if (!validation.valid) {
+      alert(validation.message);
+      return;
+    }
+
+    /* 6.2 进入加载态 */
+    UI.showLoading();
+    UI.setSubmitButton(true, '⏳ 分析中...');
+
+    const profile = FormManager.getFormData();
+
+    try {
+      /* 6.3 调用 API */
+      const data = await API.getRecommendations(profile);
+
+      /* 6.4 渲染结果 */
+      RecommendationRenderer.renderCards(data.recommendations);
+    } catch (err) {
+      /* 6.5 错误处理 */
+      console.error('推荐请求失败:', err);
+      UI.showError(err.message);
+    } finally {
+      /* 6.6 恢复按钮 */
+      UI.setSubmitButton(false, '🔍 重新获取推荐');
+    }
+  }
+
+  /* ==================================================================
+   *  7. 页面初始化
+   * ================================================================== */
+  document.addEventListener('DOMContentLoaded', () => {
+    FormManager.init();
+  });
+  </script>{% endraw %}
+
+</body>
+</html>
