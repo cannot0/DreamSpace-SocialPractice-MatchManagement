@@ -7,19 +7,28 @@ import logging
 
 import pyodbc
 
-from ..config import DB_SERVER, DB_DATABASE, DB_TRUSTED_CONNECTION
+from ..config import DB_SERVER, DB_DATABASE, DB_TRUSTED_CONNECTION, DB_USER, DB_PASSWORD
 
 logger = logging.getLogger(__name__)
 
 
 def _get_connection():
-    """获取数据库连接。"""
-    conn_str = (
-        f"DRIVER={{ODBC Driver 17 for SQL Server}};"
-        f"SERVER={DB_SERVER};"
-        f"DATABASE={DB_DATABASE};"
-        f"Trusted_Connection={DB_TRUSTED_CONNECTION};"
-    )
+    """获取数据库连接。优先使用账号密码，否则用 Windows 身份验证。"""
+    if DB_USER and DB_PASSWORD:
+        conn_str = (
+            f"DRIVER={{ODBC Driver 17 for SQL Server}};"
+            f"SERVER={DB_SERVER};"
+            f"DATABASE={DB_DATABASE};"
+            f"UID={DB_USER};"
+            f"PWD={DB_PASSWORD};"
+        )
+    else:
+        conn_str = (
+            f"DRIVER={{ODBC Driver 17 for SQL Server}};"
+            f"SERVER={DB_SERVER};"
+            f"DATABASE={DB_DATABASE};"
+            f"Trusted_Connection={DB_TRUSTED_CONNECTION};"
+        )
     return pyodbc.connect(conn_str)
 
 
