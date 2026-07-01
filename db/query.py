@@ -1,35 +1,21 @@
 """活动数据查询模块。
 
-从SQL Server数据库查询活动数据，支持省份、专业标签筛选。
+从 PostgreSQL 数据库查询活动数据，支持省份、专业标签筛选。
 """
 
 import logging
 
-import pyodbc
+import psycopg2
+import psycopg2.extras
 
-from ..config import DB_SERVER, DB_DATABASE, DB_TRUSTED_CONNECTION, DB_USER, DB_PASSWORD
+from ..config import DATABASE_URL
 
 logger = logging.getLogger(__name__)
 
 
 def _get_connection():
-    """获取数据库连接。优先使用账号密码，否则用 Windows 身份验证。"""
-    if DB_USER and DB_PASSWORD:
-        conn_str = (
-            f"DRIVER={{ODBC Driver 17 for SQL Server}};"
-            f"SERVER={DB_SERVER};"
-            f"DATABASE={DB_DATABASE};"
-            f"UID={DB_USER};"
-            f"PWD={DB_PASSWORD};"
-        )
-    else:
-        conn_str = (
-            f"DRIVER={{ODBC Driver 17 for SQL Server}};"
-            f"SERVER={DB_SERVER};"
-            f"DATABASE={DB_DATABASE};"
-            f"Trusted_Connection={DB_TRUSTED_CONNECTION};"
-        )
-    return pyodbc.connect(conn_str)
+    """获取 PostgreSQL 数据库连接。"""
+    return psycopg2.connect(DATABASE_URL)
 
 
 def _parse_tags(tags_str: str) -> list:
@@ -42,7 +28,7 @@ def _parse_tags(tags_str: str) -> list:
 def get_activities(province=None, major_tag=None, limit=20) -> list:
     """从数据库获取候选活动。
 
-    使用v_activity_full视图查询，该视图已聚合活动主表、详情表和标签表。
+    使用 v_activity_full 视图查询，该视图已聚合活动主表、详情表和标签表。
 
     Args:
         province: 省份筛选条件
@@ -54,7 +40,7 @@ def get_activities(province=None, major_tag=None, limit=20) -> list:
     """
     try:
         conn = _get_connection()
-        cursor = conn.cursor()
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
         # 构建查询语句
         query = """
@@ -69,23 +55,22 @@ def get_activities(province=None, major_tag=None, limit=20) -> list:
         params = []
 
         if province:
-            query += " AND province = ?"
+            query += " AND province = %s"
             params.append(province)
 
         if major_tag:
-            query += " AND (',' + major_tags + ',') LIKE ?"
+            query += " AND (',' || major_tags || ',') LIKE %s"
             params.append(f"%,{major_tag},%")
 
-        query += " ORDER BY crawled_at DESC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY"
+        query += " ORDER BY crawled_at DESC LIMIT %s"
         params.append(limit)
 
         cursor.execute(query, params)
-        columns = [column[0] for column in cursor.description]
         rows = cursor.fetchall()
 
         activities = []
         for row in rows:
-            activity = dict(zip(columns, row))
+            activity = dict(row)
             # 解析标签字符串为列表
             activity["major_tags"] = _parse_tags(activity.get("major_tags", ""))
             activity["skill_tags"] = _parse_tags(activity.get("skill_tags", ""))
@@ -99,7 +84,7 @@ def get_activities(province=None, major_tag=None, limit=20) -> list:
         logger.info("查询到 %d 个活动", len(activities))
         return activities
 
-    except pyodbc.Error as e:
+    except psycopg2.Error as e:
         logger.error("数据库查询失败: %s", e)
         return []
     finally:

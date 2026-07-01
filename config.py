@@ -17,12 +17,10 @@ MODEL_NAME = "qwen3.6-flash"
 MAX_RETRY = 2
 CANDIDATE_LIMIT = 20
 
-# SQL Server 数据库配置
-DB_SERVER = os.getenv("DB_SERVER", "localhost")
-DB_DATABASE = os.getenv("DB_DATABASE", "hometown_practice")
-DB_TRUSTED_CONNECTION = os.getenv("DB_TRUSTED_CONNECTION", "yes")
-DB_USER = os.getenv("DB_USER", "")
-DB_PASSWORD = os.getenv("DB_PASSWORD", "")
+# PostgreSQL 数据库配置
+# Railway 会自动注入 DATABASE_URL 环境变量
+# 格式: postgresql://user:password@host:port/dbname
+DATABASE_URL = os.getenv("DATABASE_URL", "")
 
 # Session 密钥
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-in-production")

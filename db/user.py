@@ -7,31 +7,17 @@ import json
 import logging
 from datetime import datetime
 
-import pyodbc
+import psycopg2
+import psycopg2.extras
 
-from ..config import DB_SERVER, DB_DATABASE, DB_TRUSTED_CONNECTION, DB_USER, DB_PASSWORD
+from ..config import DATABASE_URL
 
 logger = logging.getLogger(__name__)
 
 
 def _get_connection():
-    """获取数据库连接。优先使用账号密码，否则用 Windows 身份验证。"""
-    if DB_USER and DB_PASSWORD:
-        conn_str = (
-            f"DRIVER={{ODBC Driver 17 for SQL Server}};"
-            f"SERVER={DB_SERVER};"
-            f"DATABASE={DB_DATABASE};"
-            f"UID={DB_USER};"
-            f"PWD={DB_PASSWORD};"
-        )
-    else:
-        conn_str = (
-            f"DRIVER={{ODBC Driver 17 for SQL Server}};"
-            f"SERVER={DB_SERVER};"
-            f"DATABASE={DB_DATABASE};"
-            f"Trusted_Connection={DB_TRUSTED_CONNECTION};"
-        )
-    return pyodbc.connect(conn_str)
+    """获取 PostgreSQL 数据库连接。"""
+    return psycopg2.connect(DATABASE_URL)
 
 
 def create_user(username: str, password_hash: str, nickname: str = None) -> dict:
@@ -50,14 +36,14 @@ def create_user(username: str, password_hash: str, nickname: str = None) -> dict
         cursor = conn.cursor()
 
         # 检查用户名是否已存在
-        cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
+        cursor.execute("SELECT id FROM users WHERE username = %s", (username,))
         if cursor.fetchone():
             logger.warning("用户名已存在: %s", username)
             return None
 
         # 插入新用户
         cursor.execute(
-            "INSERT INTO users (username, password_hash, nickname) OUTPUT INSERTED.id VALUES (?, ?, ?)",
+            "INSERT INTO users (username, password_hash, nickname) VALUES (%s, %s, %s) RETURNING id",
             (username, password_hash, nickname or username),
         )
         user_id = cursor.fetchone()[0]
@@ -66,7 +52,7 @@ def create_user(username: str, password_hash: str, nickname: str = None) -> dict
         logger.info("用户注册成功: %s (id=%d)", username, user_id)
         return {"id": user_id, "username": username, "nickname": nickname or username}
 
-    except pyodbc.Error as e:
+    except psycopg2.Error as e:
         logger.error("创建用户失败: %s", e)
         return None
     finally:
@@ -88,7 +74,7 @@ def get_user_by_username(username: str) -> dict:
         cursor = conn.cursor()
 
         cursor.execute(
-            "SELECT id, username, password_hash, nickname, created_at, last_login FROM users WHERE username = ?",
+            "SELECT id, username, password_hash, nickname, created_at, last_login FROM users WHERE username = %s",
             (username,),
         )
         row = cursor.fetchone()
@@ -105,7 +91,7 @@ def get_user_by_username(username: str) -> dict:
             "last_login": str(row[5]) if row[5] else None,
         }
 
-    except pyodbc.Error as e:
+    except psycopg2.Error as e:
         logger.error("查询用户失败: %s", e)
         return None
     finally:
@@ -127,13 +113,13 @@ def update_last_login(user_id: int) -> bool:
         cursor = conn.cursor()
 
         cursor.execute(
-            "UPDATE users SET last_login = GETDATE() WHERE id = ?",
+            "UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = %s",
             (user_id,),
         )
         conn.commit()
         return True
 
-    except pyodbc.Error as e:
+    except psycopg2.Error as e:
         logger.error("更新登录时间失败: %s", e)
         return False
     finally:
@@ -156,16 +142,16 @@ def save_user_profile(user_id: int, profile: dict) -> bool:
         cursor = conn.cursor()
 
         # 检查是否已有画像
-        cursor.execute("SELECT id FROM user_profiles WHERE user_id = ?", (user_id,))
+        cursor.execute("SELECT id FROM user_profiles WHERE user_id = %s", (user_id,))
         existing = cursor.fetchone()
 
         if existing:
             # 更新
             cursor.execute(
                 """UPDATE user_profiles SET
-                    major = ?, grade = ?, skills = ?, province = ?, city = ?,
-                    preference = ?, available_start = ?, available_end = ?, updated_at = GETDATE()
-                WHERE user_id = ?""",
+                    major = %s, grade = %s, skills = %s, province = %s, city = %s,
+                    preference = %s, available_start = %s, available_end = %s, updated_at = CURRENT_TIMESTAMP
+                WHERE user_id = %s""",
                 (
                     profile.get("major", ""),
                     profile.get("grade", ""),
@@ -183,7 +169,7 @@ def save_user_profile(user_id: int, profile: dict) -> bool:
             cursor.execute(
                 """INSERT INTO user_profiles
                     (user_id, major, grade, skills, province, city, preference, available_start, available_end)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)""",
                 (
                     user_id,
                     profile.get("major", ""),
@@ -201,7 +187,7 @@ def save_user_profile(user_id: int, profile: dict) -> bool:
         logger.info("用户画像保存成功: user_id=%d", user_id)
         return True
 
-    except pyodbc.Error as e:
+    except psycopg2.Error as e:
         logger.error("保存用户画像失败: %s", e)
         return False
     finally:
@@ -223,7 +209,7 @@ def get_user_profile(user_id: int) -> dict:
         cursor = conn.cursor()
 
         cursor.execute(
-            "SELECT major, grade, skills, province, city, preference, available_start, available_end FROM user_profiles WHERE user_id = ?",
+            "SELECT major, grade, skills, province, city, preference, available_start, available_end FROM user_profiles WHERE user_id = %s",
             (user_id,),
         )
         row = cursor.fetchone()
@@ -242,7 +228,7 @@ def get_user_profile(user_id: int) -> dict:
             "available_end": str(row[7]) if row[7] else "",
         }
 
-    except pyodbc.Error as e:
+    except psycopg2.Error as e:
         logger.error("获取用户画像失败: %s", e)
         return None
     finally:
@@ -266,14 +252,14 @@ def save_recommendation(user_id: int, profile: dict, result: dict) -> bool:
         cursor = conn.cursor()
 
         cursor.execute(
-            "INSERT INTO recommendation_history (user_id, profile_snapshot, result_json) VALUES (?, ?, ?)",
+            "INSERT INTO recommendation_history (user_id, profile_snapshot, result_json) VALUES (%s, %s, %s)",
             (user_id, json.dumps(profile, ensure_ascii=False), json.dumps(result, ensure_ascii=False)),
         )
         conn.commit()
         logger.info("推荐历史保存成功: user_id=%d", user_id)
         return True
 
-    except pyodbc.Error as e:
+    except psycopg2.Error as e:
         logger.error("保存推荐历史失败: %s", e)
         return False
     finally:
@@ -296,7 +282,7 @@ def get_recommendation_history(user_id: int, limit: int = 20) -> list:
         cursor = conn.cursor()
 
         cursor.execute(
-            "SELECT profile_snapshot, result_json, created_at FROM recommendation_history WHERE user_id = ? ORDER BY created_at DESC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY",
+            "SELECT profile_snapshot, result_json, created_at FROM recommendation_history WHERE user_id = %s ORDER BY created_at DESC LIMIT %s",
             (user_id, limit),
         )
         rows = cursor.fetchall()
@@ -311,7 +297,7 @@ def get_recommendation_history(user_id: int, limit: int = 20) -> list:
 
         return history
 
-    except pyodbc.Error as e:
+    except psycopg2.Error as e:
         logger.error("获取推荐历史失败: %s", e)
         return []
     finally:
@@ -346,7 +332,7 @@ def get_all_users() -> list:
 
         return users
 
-    except pyodbc.Error as e:
+    except psycopg2.Error as e:
         logger.error("获取用户列表失败: %s", e)
         return []
     finally:

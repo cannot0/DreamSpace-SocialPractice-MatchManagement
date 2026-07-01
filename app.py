@@ -253,8 +253,29 @@ def admin_upload():
     if not file.filename.endswith(('.xlsx', '.xls')):
         return jsonify({"error": "请上传 Excel 文件（.xlsx 或 .xls）"}), 400
 
-    # TODO: 调用 input.py 的数据清洗逻辑导入数据
-    return jsonify({"message": "上传成功，功能待实现", "filename": file.filename})
+    # 保存到临时文件
+    import tempfile
+    tmp = tempfile.NamedTemporaryFile(suffix='.xlsx', delete=False)
+    try:
+        file.save(tmp.name)
+        tmp.close()
+
+        try:
+            from input import import_excel
+        except ImportError:
+            from recommender.input import import_excel
+
+        result = import_excel(tmp.name)
+        return jsonify({
+            "message": f"导入完成：成功 {result['success']} 条，跳过 {result['skip']} 条，错误 {result['error']} 条",
+            "result": result,
+            "filename": file.filename,
+        })
+    finally:
+        try:
+            os.unlink(tmp.name)
+        except OSError:
+            pass
 
 
 @app.route("/admin/users")

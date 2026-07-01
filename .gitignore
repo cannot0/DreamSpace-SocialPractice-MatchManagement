@@ -30,3 +30,6 @@ build/
 .DS_Store
 Thumbs.db
 *.log
+
+# SQL Server bacpac 数据文件（不需要入库）
+db/bacpac_contents/Data/

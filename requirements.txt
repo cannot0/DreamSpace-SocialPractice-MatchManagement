@@ -3,6 +3,8 @@ openai
 jinja2
 python-dotenv
 requests
-pyodbc
+psycopg2-binary
 gunicorn
+pandas
+openpyxl
 
