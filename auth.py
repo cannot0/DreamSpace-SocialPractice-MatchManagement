@@ -10,7 +10,7 @@ from functools import wraps
 from flask import session, redirect, url_for, request
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from .config import ADMIN_USERNAME, ADMIN_PASSWORD
+from config import ADMIN_USERNAME, ADMIN_PASSWORD
 
 logger = logging.getLogger(__name__)
 

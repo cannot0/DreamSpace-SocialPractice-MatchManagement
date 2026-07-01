@@ -7,15 +7,15 @@ from datetime import date
 
 import requests
 
-from .config import (
+from config import (
     BASE_URL,
     CANDIDATE_LIMIT,
     QWEN_API_KEY,
     MAX_RETRY,
     MODEL_NAME,
 )
-from .db.query import get_activities
-from .prompt_template import SYSTEM_PROMPT, render_prompt
+from db.query import get_activities
+from prompt_template import SYSTEM_PROMPT, render_prompt
 
 
 logger = logging.getLogger(__name__)
