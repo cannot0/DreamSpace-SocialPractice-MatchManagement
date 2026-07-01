@@ -53,7 +53,7 @@ def get_activities(province=None, major_tag=None, limit=20) -> list:
         # 构建查询语句
         query = """
             SELECT
-                project_id, activity_id, title, org_name,
+                project_id, activity_id, title, display_title, org_name,
                 province, city, district, category,
                 start_date, end_date, quota, source_url,
                 major_tags, skill_tags
@@ -82,7 +82,7 @@ def get_activities(province=None, major_tag=None, limit=20) -> list:
             logger.info("按省份+专业筛选无结果，回退到只按省份筛选")
             fallback_query = """
                 SELECT
-                    project_id, activity_id, title, org_name,
+                    project_id, activity_id, title, display_title, org_name,
                     province, city, district, category,
                     start_date, end_date, quota, source_url,
                     major_tags, skill_tags
@@ -98,7 +98,7 @@ def get_activities(province=None, major_tag=None, limit=20) -> list:
             logger.info("按省份筛选无结果，返回最新活动")
             cursor.execute("""
                 SELECT
-                    project_id, activity_id, title, org_name,
+                    project_id, activity_id, title, display_title, org_name,
                     province, city, district, category,
                     start_date, end_date, quota, source_url,
                     major_tags, skill_tags
@@ -110,6 +110,8 @@ def get_activities(province=None, major_tag=None, limit=20) -> list:
         activities = []
         for row in rows:
             activity = dict(row)
+            # 用带地区前缀的 display_title 覆盖 title
+            activity["title"] = activity.pop("display_title") or activity["title"]
             # 解析标签字符串为列表
             activity["major_tags"] = _parse_tags(activity.get("major_tags", ""))
             activity["skill_tags"] = _parse_tags(activity.get("skill_tags", ""))

@@ -129,7 +129,26 @@ SELECT
         (SELECT STRING_AGG(t.tag_value, ',')
          FROM activity_tags t
          WHERE t.project_id = a.project_id AND t.tag_type = 'skill'), ''
-    ) AS skill_tags
+    ) AS skill_tags,
+    -- 智能拼接地区前缀（省份+市区+县城+原标题），避免重复
+    -- province/city/district 存储时已去掉后缀，title 中可能带后缀
+    CASE
+        WHEN a.title LIKE a.province || '%'
+            OR a.title LIKE a.province || '省%'
+            OR a.title LIKE a.province || '自治区%'
+            THEN a.title
+        WHEN a.title LIKE a.city || '%'
+            OR a.title LIKE a.city || '市%'
+            OR a.title LIKE a.city || '自治州%'
+            OR a.title LIKE a.city || '州%'
+            THEN COALESCE(a.province, '') || a.title
+        WHEN a.title LIKE a.district || '%'
+            OR a.title LIKE a.district || '县%'
+            OR a.title LIKE a.district || '区%'
+            OR a.title LIKE a.district || '市%'
+            THEN COALESCE(a.province, '') || COALESCE(a.city, '') || a.title
+        ELSE COALESCE(a.province, '') || COALESCE(a.city, '') || COALESCE(a.district, '') || a.title
+    END AS display_title
 FROM activities a
 LEFT JOIN activity_details d ON a.project_id = d.project_id
 WHERE a.is_active = 1;
