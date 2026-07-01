@@ -248,17 +248,29 @@ def admin_upload():
         tmp.close()
 
         # 自动检测并建表
-        from db.init_data import ensure_tables
-        ensure_tables()
+        try:
+            from db.init_data import ensure_tables
+            ensure_tables()
+        except Exception as e:
+            logger.error("自动建表失败: %s", e)
+            return jsonify({"error": f"建表失败：{e}"}), 500
 
         from input import import_excel
 
-        result = import_excel(tmp.name)
+        try:
+            result = import_excel(tmp.name)
+        except Exception as e:
+            logger.error("导入数据失败: %s", e)
+            return jsonify({"error": f"导入失败：{e}"}), 500
+
         return jsonify({
             "message": f"导入完成：成功 {result['success']} 条，跳过 {result['skip']} 条，错误 {result['error']} 条",
             "result": result,
             "filename": file.filename,
         })
+    except Exception as e:
+        logger.error("上传处理异常: %s", e)
+        return jsonify({"error": f"处理失败：{e}"}), 500
     finally:
         try:
             os.unlink(tmp.name)
