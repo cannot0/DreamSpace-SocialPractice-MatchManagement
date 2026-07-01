@@ -5,6 +5,7 @@ import secrets
 import logging
 
 from flask import Flask, jsonify, render_template, request, redirect, url_for, session
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from config import SECRET_KEY
 from recommend import get_recommendations
@@ -27,6 +28,13 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__, template_folder=os.path.join(os.path.dirname(__file__), "templates"))
 app.secret_key = SECRET_KEY
+
+# Railway 使用反向代理，需要正确识别 HTTPS
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
+
+# Session cookie 配置（适配 Railway HTTPS）
+app.config['SESSION_COOKIE_SECURE'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
 
 def generate_csrf_token():
