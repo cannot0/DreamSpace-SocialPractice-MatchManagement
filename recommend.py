@@ -46,7 +46,7 @@ def _call_llm(system_prompt, user_prompt) -> str:
             "temperature": 0,
             "max_tokens": 1500,
         },
-        timeout=60,
+        timeout=30,
     )
     response.raise_for_status()
     content = response.json()["choices"][0]["message"]["content"] or ""
