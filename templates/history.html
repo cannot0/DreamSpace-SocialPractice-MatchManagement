@@ -338,15 +338,16 @@
 
       // Scrubbing fade-in for timeline items
       gsap.utils.toArray('.gsap-fade').forEach(el => {
-        gsap.from(el, {
+        gsap.set(el, { opacity: 0, y: 24 });
+        gsap.to(el, {
           scrollTrigger: {
             trigger: el,
             start: 'top 88%',
             end: 'top 65%',
             scrub: 1,
           },
-          y: 24,
-          opacity: 0,
+          y: 0,
+          opacity: 1,
         });
       });
 

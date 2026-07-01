@@ -461,13 +461,16 @@
     document.addEventListener('DOMContentLoaded', () => {
       gsap.registerPlugin(ScrollTrigger);
 
-      // Entrance animations
-      const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+      // Entrance animations -- set initial states first, then animate
+      gsap.set(['.admin-page-header', '.dash-upload', '.dash-stats', '.dash-users'], {
+        opacity: 0, y: 24
+      });
 
-      tl.from('.admin-page-header', { y: 20, opacity: 0, duration: 0.6, delay: 0.1 })
-        .from('.dash-upload', { y: 24, opacity: 0, duration: 0.6 }, '-=0.3')
-        .from('.dash-stats', { y: 24, opacity: 0, duration: 0.5 }, '-=0.4')
-        .from('.dash-users', { y: 24, opacity: 0, duration: 0.6 }, '-=0.3');
+      const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+      tl.to('.admin-page-header', { y: 0, opacity: 1, duration: 0.6, delay: 0.1 })
+        .to('.dash-upload', { y: 0, opacity: 1, duration: 0.6 }, '-=0.3')
+        .to('.dash-stats', { y: 0, opacity: 1, duration: 0.5 }, '-=0.4')
+        .to('.dash-users', { y: 0, opacity: 1, duration: 0.6 }, '-=0.3');
 
       // Counter animation for stat number
       const statEl = document.getElementById('userCount');

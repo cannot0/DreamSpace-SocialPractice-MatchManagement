@@ -933,15 +933,16 @@
 
     // Scrubbing text reveals for form section
     gsap.utils.toArray('.gsap-fade').forEach(el => {
-      gsap.from(el, {
+      gsap.set(el, { opacity: 0, y: 30 });
+      gsap.to(el, {
         scrollTrigger: {
           trigger: el,
           start: 'top 85%',
           end: 'top 60%',
           scrub: 1,
         },
-        y: 30,
-        opacity: 0,
+        y: 0,
+        opacity: 1,
       });
     });
 

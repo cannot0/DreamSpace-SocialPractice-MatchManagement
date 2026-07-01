@@ -1134,11 +1134,14 @@ body > * {
   to   { opacity: 1; transform: translateX(0); }
 }
 
-/* GSAP-ready utility classes */
-.gsap-fade       { opacity: 0; transform: translateY(24px); }
-.gsap-scale      { opacity: 0; transform: scale(0.85); }
-.gsap-slide-left { opacity: 0; transform: translateX(-40px); }
-.gsap-slide-right{ opacity: 0; transform: translateX(40px); }
+/* GSAP-ready utility classes -- initial states set via JS, not CSS,
+   so content remains visible if GSAP fails to load. */
+.gsap-fade,
+.gsap-scale,
+.gsap-slide-left,
+.gsap-slide-right {
+  /* JS will set opacity/transform before animating */
+}
 
 /* Hover physics for cards */
 .hover-lift {
