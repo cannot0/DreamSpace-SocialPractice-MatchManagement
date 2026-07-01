@@ -177,6 +177,27 @@ def history():
                            is_admin=session.get('is_admin', False))
 
 
+@app.route("/debug/history")
+@login_required
+def debug_history():
+    """临时调试：查看推荐历史原始数据。"""
+    user_id = session['user_id']
+    records = get_recommendation_history(user_id) if user_id != 0 else []
+    output = []
+    for i, r in enumerate(records[:5]):
+        result = r.get('result', {})
+        output.append({
+            "index": i,
+            "created_at": r.get('created_at'),
+            "profile_snapshot_keys": list(r.get('profile_snapshot', {}).keys()),
+            "result_keys": list(result.keys()),
+            "has_recommendations": 'recommendations' in result,
+            "recommendations_count": len(result.get('recommendations', [])),
+            "first_rec": result.get('recommendations', [{}])[0] if result.get('recommendations') else None,
+        })
+    return jsonify(output)
+
+
 # ==================== 管理路由 ====================
 
 @app.route("/admin")
