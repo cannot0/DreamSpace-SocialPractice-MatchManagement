@@ -125,7 +125,10 @@ def get_activities(province=None, major_tag=None, limit=20) -> list:
 
     except psycopg2.Error as e:
         logger.error("数据库查询失败: %s", e)
-        return []
+        raise
+    except Exception as e:
+        logger.error("查询活动异常: %s", e, exc_info=True)
+        raise
     finally:
         if "conn" in locals():
             conn.close()

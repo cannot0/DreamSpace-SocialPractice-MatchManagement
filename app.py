@@ -313,7 +313,11 @@ def recommend():
             400,
         )
 
-    result = get_recommendations(user_profile)
+    try:
+        result = get_recommendations(user_profile)
+    except Exception as e:
+        logger.error("推荐接口异常: %s", e, exc_info=True)
+        return jsonify({"error": f"推荐生成失败：{e}", "recommendations": []}), 500
 
     # 保存推荐历史（非管理员用户）
     user_id = session.get('user_id')
