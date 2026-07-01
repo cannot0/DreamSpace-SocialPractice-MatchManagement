@@ -14,10 +14,6 @@ import logging
 import psycopg2
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(levelname)s %(name)s - %(message)s",
-)
 
 
 def get_connection():
@@ -55,6 +51,43 @@ def run_schema():
         conn.rollback()
         print(f"建表失败: {e}")
         sys.exit(1)
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def ensure_tables():
+    """确保数据库表已存在，不存在则自动建表。
+
+    检查 activities 表是否存在，如果不存在则执行 schema.sql 建表。
+    使用 CREATE TABLE IF NOT EXISTS，重复调用是安全的。
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        # 检查 activities 表是否存在
+        cursor.execute("""
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables
+                WHERE table_name = 'activities'
+            )
+        """)
+        table_exists = cursor.fetchone()[0]
+
+        if not table_exists:
+            logger.info("数据库表不存在，正在自动建表...")
+            schema_path = os.path.join(os.path.dirname(__file__), "schema.sql")
+            with open(schema_path, "r", encoding="utf-8") as f:
+                schema_sql = f.read()
+            cursor.execute(schema_sql)
+            conn.commit()
+            logger.info("自动建表完成")
+        else:
+            logger.info("数据库表已存在，跳过建表")
+    except psycopg2.Error as e:
+        conn.rollback()
+        logger.error("自动建表失败: %s", e)
+        raise
     finally:
         cursor.close()
         conn.close()

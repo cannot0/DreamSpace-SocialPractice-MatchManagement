@@ -247,6 +247,10 @@ def admin_upload():
         file.save(tmp.name)
         tmp.close()
 
+        # 自动检测并建表
+        from db.init_data import ensure_tables
+        ensure_tables()
+
         from input import import_excel
 
         result = import_excel(tmp.name)
