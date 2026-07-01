@@ -1,46 +1,26 @@
 """Flask接口服务。"""
 
 import os
-import sys
 import secrets
 import logging
 
 from flask import Flask, jsonify, render_template, request, redirect, url_for, session
 
-try:
-    from .recommend import get_recommendations
-    from .auth import (
-        login_required, admin_required,
-        validate_username, validate_password, validate_nickname,
-        hash_password, verify_password,
-        check_login_rate_limit, record_login_failure, clear_login_failures,
-        authenticate_admin,
-    )
-    from .db.user import (
-        create_user, get_user_by_username, update_last_login,
-        save_user_profile, get_user_profile,
-        save_recommendation, get_recommendation_history,
-        get_all_users,
-    )
-except ImportError:
-    sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-    from recommender.recommend import get_recommendations
-    from recommender.auth import (
-        login_required, admin_required,
-        validate_username, validate_password, validate_nickname,
-        hash_password, verify_password,
-        check_login_rate_limit, record_login_failure, clear_login_failures,
-        authenticate_admin,
-    )
-    from recommender.db.user import (
-        create_user, get_user_by_username, update_last_login,
-        save_user_profile, get_user_profile,
-        save_recommendation, get_recommendation_history,
-        get_all_users,
-    )
-    from recommender.config import SECRET_KEY
-
 from config import SECRET_KEY
+from recommend import get_recommendations
+from auth import (
+    login_required, admin_required,
+    validate_username, validate_password, validate_nickname,
+    hash_password, verify_password,
+    check_login_rate_limit, record_login_failure, clear_login_failures,
+    authenticate_admin,
+)
+from db.user import (
+    create_user, get_user_by_username, update_last_login,
+    save_user_profile, get_user_profile,
+    save_recommendation, get_recommendation_history,
+    get_all_users,
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -260,10 +240,7 @@ def admin_upload():
         file.save(tmp.name)
         tmp.close()
 
-        try:
-            from input import import_excel
-        except ImportError:
-            from recommender.input import import_excel
+        from input import import_excel
 
         result = import_excel(tmp.name)
         return jsonify({

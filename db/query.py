@@ -8,7 +8,7 @@ import logging
 import psycopg2
 import psycopg2.extras
 
-from ..config import DATABASE_URL
+from config import DATABASE_URL
 
 logger = logging.getLogger(__name__)
 
