@@ -13,7 +13,7 @@ if load_dotenv:
 
 QWEN_API_KEY = os.getenv("QWEN_API_KEY")
 BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-MODEL_NAME = os.getenv("MODEL_NAME", "qwen-turbo-latest")
+MODEL_NAME = os.getenv("MODEL_NAME", "qwen-turbo")
 MAX_RETRY = 2
 CANDIDATE_LIMIT = 20
 
