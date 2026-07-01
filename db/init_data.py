@@ -84,6 +84,35 @@ def ensure_tables():
             logger.info("自动建表完成")
         else:
             logger.info("数据库表已存在，跳过建表")
+
+        # 确保 activity_tags 有唯一约束（兼容旧表）
+        try:
+            cursor.execute("""
+                DO $$
+                BEGIN
+                    IF NOT EXISTS (
+                        SELECT 1 FROM pg_constraint
+                        WHERE conrelid = 'activity_tags'::regclass
+                        AND conname = 'activity_tags_project_id_tag_type_tag_value_key'
+                    ) THEN
+                        -- 先清理可能存在的重复数据
+                        DELETE FROM activity_tags a
+                        USING activity_tags b
+                        WHERE a.id < b.id
+                          AND a.project_id = b.project_id
+                          AND a.tag_type = b.tag_type
+                          AND a.tag_value = b.tag_value;
+                        -- 添加唯一约束
+                        ALTER TABLE activity_tags
+                        ADD CONSTRAINT activity_tags_project_id_tag_type_tag_value_key
+                        UNIQUE (project_id, tag_type, tag_value);
+                    END IF;
+                END $$;
+            """)
+            conn.commit()
+        except psycopg2.Error as e:
+            conn.rollback()
+            logger.warning("检查/添加唯一约束失败（可忽略）: %s", e)
     except psycopg2.Error as e:
         conn.rollback()
         logger.error("自动建表失败: %s", e)

@@ -49,7 +49,8 @@ CREATE TABLE IF NOT EXISTS activity_tags (
     id SERIAL PRIMARY KEY,
     project_id VARCHAR(20) NOT NULL REFERENCES activities(project_id),
     tag_type VARCHAR(10) NOT NULL,
-    tag_value VARCHAR(50) NOT NULL
+    tag_value VARCHAR(50) NOT NULL,
+    UNIQUE (project_id, tag_type, tag_value)
 );
 
 CREATE INDEX IF NOT EXISTS idx_tags_project ON activity_tags(project_id);
