@@ -18,7 +18,6 @@ from auth import (
 )
 from db.user import (
     create_user, get_user_by_username, update_last_login,
-    save_user_profile, get_user_profile,
     save_recommendation, get_recommendation_history,
     get_all_users,
 )
@@ -163,44 +162,6 @@ def index():
                            username=session.get('username'),
                            nickname=session.get('nickname'),
                            is_admin=session.get('is_admin', False))
-
-
-@app.route("/profile", methods=["GET", "POST"])
-@login_required
-def profile():
-    """用户画像页面。"""
-    user_id = session['user_id']
-
-    if request.method == "GET":
-        # 获取已保存的画像
-        saved_profile = get_user_profile(user_id) if user_id != 0 else None
-        return render_template("profile.html",
-                               profile=saved_profile or {},
-                               saved=request.args.get('saved') == '1',
-                               username=session.get('username'),
-                               nickname=session.get('nickname'),
-                               is_admin=session.get('is_admin', False))
-
-    # POST: 保存画像
-    if not validate_csrf_token():
-        return redirect(url_for('profile'))
-
-    profile_data = {
-        "major": request.form.get("major", "").strip(),
-        "grade": request.form.get("grade", "").strip(),
-        "skills": request.form.get("skills", "").strip(),
-        "province": request.form.get("province", "").strip(),
-        "city": request.form.get("city", "").strip(),
-        "preference": request.form.get("preference", "").strip(),
-        "available_start": request.form.get("available_start") or None,
-        "available_end": request.form.get("available_end") or None,
-    }
-
-    if user_id != 0:
-        save_user_profile(user_id, profile_data)
-
-    # 保存成功后重定向，带上 saved 参数
-    return redirect(url_for('profile', saved='1'))
 
 
 @app.route("/history")
