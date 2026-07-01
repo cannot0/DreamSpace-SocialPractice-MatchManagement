@@ -294,6 +294,59 @@ def health():
     return jsonify({"status": "ok"})
 
 
+@app.route("/debug/db", methods=["GET"])
+@admin_required
+def debug_db():
+    """数据库诊断。"""
+    import psycopg2
+    from config import DATABASE_URL
+    info = {}
+    try:
+        conn = psycopg2.connect(DATABASE_URL)
+        cursor = conn.cursor()
+
+        # 检查表是否存在
+        cursor.execute("""
+            SELECT table_name FROM information_schema.tables
+            WHERE table_schema = 'public'
+        """)
+        info["tables"] = [r[0] for r in cursor.fetchall()]
+
+        # 检查各表数据量
+        for table in ("activities", "activity_details", "activity_tags"):
+            if table in info["tables"]:
+                cursor.execute(f"SELECT COUNT(*) FROM {table}")
+                info[f"{table}_count"] = cursor.fetchone()[0]
+
+        # 检查视图是否存在
+        cursor.execute("""
+            SELECT table_name FROM information_schema.views
+            WHERE table_schema = 'public'
+        """)
+        info["views"] = [r[0] for r in cursor.fetchall()]
+
+        # 测试 v_activity_full 视图
+        if "v_activity_full" in info.get("views", []):
+            cursor.execute("SELECT COUNT(*) FROM v_activity_full")
+            info["v_activity_full_count"] = cursor.fetchone()[0]
+
+            cursor.execute("SELECT project_id, title, province, major_tags FROM v_activity_full LIMIT 3")
+            info["sample"] = [dict(zip(["project_id", "title", "province", "major_tags"], r)) for r in cursor.fetchall()]
+
+        # 测试查询
+        cursor.execute("SELECT DISTINCT province FROM activities LIMIT 10")
+        info["sample_provinces"] = [r[0] for r in cursor.fetchall()]
+
+        cursor.close()
+        conn.close()
+        info["status"] = "ok"
+    except Exception as e:
+        info["status"] = "error"
+        info["error"] = str(e)
+
+    return jsonify(info)
+
+
 @app.route("/api/recommend", methods=["POST"])
 @login_required
 def recommend():
