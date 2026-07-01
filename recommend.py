@@ -64,18 +64,34 @@ def _parse_llm_response(raw: str) -> dict:
 
 def get_recommendations(user_profile: dict) -> dict:
     """获取活动推荐结果。"""
-    activities = get_activities(
-        province=user_profile.get("province"),
-        major_tag=user_profile.get("major"),
-        limit=CANDIDATE_LIMIT,
-    )
+    logger.info("=== 推荐请求开始 ===")
+    logger.info("用户画像: %s", user_profile)
+    logger.info("QWEN_API_KEY 状态: %s", "已配置" if QWEN_API_KEY else "未配置（将使用 dry_run）")
+
+    try:
+        activities = get_activities(
+            province=user_profile.get("province"),
+            major_tag=user_profile.get("major"),
+            limit=CANDIDATE_LIMIT,
+        )
+    except Exception as e:
+        logger.error("获取活动失败: %s", e, exc_info=True)
+        return {"error": f"数据库查询失败：{e}", "recommendations": []}
+
+    logger.info("获取到 %d 个候选活动", len(activities))
+    if not activities:
+        logger.warning("候选活动为空，无法生成推荐")
+        return {"error": "未找到候选活动", "recommendations": []}
+
     user_prompt = render_prompt(user_profile, activities)
+    logger.info("Prompt 已渲染，长度: %d", len(user_prompt))
 
     last_error = ""
     for attempt in range(1, MAX_RETRY + 2):
         try:
             logger.info("开始第%s次推荐调用，候选活动数：%s", attempt, len(activities))
             raw = _call_llm(SYSTEM_PROMPT, user_prompt)
+            logger.info("LLM 响应长度: %d", len(raw))
             result = _parse_llm_response(raw)
 
             if "recommendations" not in result or not isinstance(

@@ -367,7 +367,9 @@ def recommend():
         )
 
     try:
+        logger.info("收到推荐请求: %s", user_profile)
         result = get_recommendations(user_profile)
+        logger.info("推荐完成: %s", result.get("recommendations", [])[:1] if isinstance(result, dict) else "非dict")
     except Exception as e:
         logger.error("推荐接口异常: %s", e, exc_info=True)
         return jsonify({"error": f"推荐生成失败：{e}", "recommendations": []}), 500
