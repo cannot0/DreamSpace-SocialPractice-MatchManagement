@@ -34,6 +34,9 @@ def _call_llm(system_prompt, user_prompt) -> str:
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_prompt},
     ]
+    import time
+    start = time.time()
+    logger.info("调用LLM，模型: %s, Prompt长度: %d", MODEL_NAME, len(user_prompt))
     response = requests.post(
         f"{BASE_URL}/chat/completions",
         headers={
@@ -46,8 +49,10 @@ def _call_llm(system_prompt, user_prompt) -> str:
             "temperature": 0,
             "max_tokens": 1500,
         },
-        timeout=30,
+        timeout=60,
     )
+    elapsed = time.time() - start
+    logger.info("LLM响应耗时: %.2fs, HTTP状态码: %s", elapsed, response.status_code)
     response.raise_for_status()
     content = response.json()["choices"][0]["message"]["content"] or ""
     logger.info("LLM调用成功，响应长度：%s", len(content))
