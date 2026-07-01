@@ -3,134 +3,249 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>推荐历史 - 返家乡实践活动推荐系统</title>
+  <title>推荐历史 — 返家乡实践活动推荐系统</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='common.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+
   <style>
-    .history-item {
-      background: var(--card-bg);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow-card);
-      padding: 24px;
-      margin-bottom: 16px;
-      transition: var(--transition);
+    .history-page {
+      padding-top: var(--space-4xl);
     }
 
-    .history-item:hover {
-      box-shadow: var(--shadow-card-hover);
+    .page-header {
+      margin-bottom: var(--space-3xl);
     }
 
-    .history-header {
+    .page-header h1 {
+      font-size: clamp(1.8rem, 3vw, 2.5rem);
+      font-weight: 800;
+      color: var(--color-text);
+      letter-spacing: -0.02em;
+      margin-bottom: var(--space-sm);
+    }
+
+    .page-header p {
+      font-size: 15px;
+      color: var(--color-text-muted);
+    }
+
+    .history-count {
+      font-size: 14px;
+      color: var(--color-text-muted);
+      margin-bottom: var(--space-xl);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Timeline layout */
+    .timeline {
+      position: relative;
+      padding-left: 40px;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 15px;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: linear-gradient(180deg, var(--color-primary), var(--color-accent), transparent);
+    }
+
+    .timeline-item {
+      position: relative;
+      margin-bottom: var(--space-xl);
+    }
+
+    .timeline-dot {
+      position: absolute;
+      left: -33px;
+      top: 24px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--color-primary);
+      border: 2px solid var(--color-bg);
+      box-shadow: 0 0 0 3px var(--color-primary-muted);
+    }
+
+    .timeline-card {
+      background: var(--color-bg-card);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+      transition: all var(--duration-normal) var(--ease-out);
+    }
+
+    .timeline-card:hover {
+      background: var(--color-bg-card-hover);
+      border-color: rgba(255, 255, 255, 0.12);
+      transform: translateX(4px);
+    }
+
+    .timeline-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 16px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid var(--border-color);
+      margin-bottom: var(--space-md);
+      padding-bottom: var(--space-md);
+      border-bottom: 1px solid var(--color-border);
     }
 
-    .history-time {
+    .timeline-time {
       font-size: 13px;
-      color: var(--text-muted);
+      color: var(--color-text-muted);
+      font-variant-numeric: tabular-nums;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .timeline-time svg {
+      color: var(--color-primary);
     }
 
     .history-profile {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 16px;
+      gap: var(--space-sm);
+      margin-bottom: var(--space-lg);
     }
 
     .profile-tag {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
-      padding: 4px 12px;
-      background: var(--primary-light);
-      color: var(--primary-color);
-      border-radius: 20px;
+      gap: 6px;
+      padding: 4px 14px;
+      background: var(--color-primary-muted);
+      color: var(--color-primary);
+      border-radius: var(--radius-full);
       font-size: 13px;
+      font-weight: 500;
     }
 
     .rec-list {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: var(--space-md);
     }
 
     .rec-item {
-      padding: 14px;
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-sm);
-      background: #fafbfc;
+      padding: var(--space-md);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface);
+      transition: all var(--duration-fast) ease;
+    }
+
+    .rec-item:hover {
+      border-color: rgba(255, 255, 255, 0.12);
+      background: var(--color-surface-alt);
+    }
+
+    .rec-item-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--color-text);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-sm);
     }
 
     .rec-item-rank {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      background: var(--primary-color);
+      flex-shrink: 0;
+      width: 26px;
+      height: 26px;
+      border-radius: var(--radius-sm);
+      background: var(--color-primary);
       color: #fff;
-      font-size: 13px;
-      font-weight: 600;
-      margin-right: 8px;
+      font-size: 12px;
+      font-weight: 700;
     }
 
-    .rec-item-rank.rank-1 { background: #f5a623; }
-    .rec-item-rank.rank-2 { background: #a0a0b0; }
-    .rec-item-rank.rank-3 { background: #cd7f32; }
-
-    .rec-item-title {
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--text-primary);
-      margin-bottom: 6px;
-    }
+    .rec-item-rank.rank-1 { background: var(--color-gold); color: var(--color-text-inverse); }
+    .rec-item-rank.rank-2 { background: var(--color-silver); color: var(--color-text-inverse); }
+    .rec-item-rank.rank-3 { background: var(--color-bronze); color: #fff; }
 
     .rec-item-score {
       font-size: 13px;
-      color: var(--text-muted);
+      color: var(--color-text-muted);
+      line-height: 1.6;
     }
 
     .rec-item-score strong {
-      color: var(--primary-color);
+      color: var(--color-primary);
+      font-weight: 700;
     }
 
+    /* Empty state */
     .empty-state {
       text-align: center;
-      padding: 60px 20px;
-      color: var(--text-muted);
+      padding: var(--space-4xl) var(--space-xl);
+      color: var(--color-text-muted);
     }
 
-    .empty-state .icon {
-      font-size: 56px;
-      margin-bottom: 16px;
+    .empty-state svg {
+      opacity: 0.3;
+      margin-bottom: var(--space-lg);
     }
 
     .empty-state p {
       font-size: 16px;
+      margin-bottom: var(--space-sm);
     }
 
-    .history-count {
-      font-size: 14px;
-      color: var(--text-muted);
-      margin-bottom: 20px;
+    .empty-state a {
+      color: var(--color-primary);
+      font-weight: 500;
+    }
+
+    @media (max-width: 768px) {
+      .timeline {
+        padding-left: 28px;
+      }
+      .timeline-dot {
+        left: -21px;
+        width: 10px;
+        height: 10px;
+      }
+      .rec-list {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
 <body>
 
-  <!-- 导航栏 -->
+  <!-- ==================== NAVIGATION ==================== -->
   <nav class="navbar">
-    <a class="navbar-brand" href="{{ url_for('index') }}">🎓 返家乡推荐系统</a>
+    <a class="navbar-brand" href="{{ url_for('index') }}">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-primary)">
+        <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+        <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+      </svg>
+      返家乡推荐
+    </a>
     <div class="navbar-user">
       <ul class="navbar-nav">
-        <li><a href="{{ url_for('index') }}">🔍 获取推荐</a></li>
-        <li><a href="{{ url_for('history') }}" class="active">📜 推荐历史</a></li>
+        <li><a href="{{ url_for('index') }}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          获取推荐
+        </a></li>
+        <li><a href="{{ url_for('history') }}" class="active">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          推荐历史
+        </a></li>
         {% if is_admin %}
-        <li><a href="{{ url_for('admin') }}">⚙️ 管理后台</a></li>
+        <li><a href="{{ url_for('admin') }}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          管理后台
+        </a></li>
         {% endif %}
       </ul>
       <span class="username">{{ nickname or username }}</span>
@@ -138,65 +253,120 @@
     </div>
   </nav>
 
-  <main class="container">
-    <div class="card">
-      <div class="card-title">
-        <span class="icon">📜</span> 推荐历史
-      </div>
+  <!-- ==================== MAIN CONTENT ==================== -->
+  <main class="container history-page">
 
-      {% if records %}
-      <div class="history-count">共 {{ records|length }} 条推荐记录</div>
+    <div class="page-header gsap-fade">
+      <h1>推荐历史</h1>
+      <p>回顾你之前的推荐记录</p>
+    </div>
 
+    {% if records %}
+    <div class="history-count gsap-fade">共 {{ records|length }} 条推荐记录</div>
+
+    <div class="timeline">
       {% for record in records %}
-      <div class="history-item">
-        <div class="history-header">
-          <div class="history-time">🕐 {{ record.created_at }}</div>
-        </div>
-
-        <!-- 画像快照 -->
-        <div class="history-profile">
-          {% if record.profile_snapshot.get('major') %}
-          <span class="profile-tag">📚 {{ record.profile_snapshot.major }}</span>
-          {% endif %}
-          {% if record.profile_snapshot.get('province') %}
-          <span class="profile-tag">📍 {{ record.profile_snapshot.province }}</span>
-          {% endif %}
-          {% if record.profile_snapshot.get('skills') %}
-          <span class="profile-tag">💡 {{ record.profile_snapshot.skills }}</span>
-          {% endif %}
-        </div>
-
-        <!-- 推荐结果 -->
-        <div class="rec-list">
-          {% for rec in record.result.get('recommendations', [])[:5] %}
-          <div class="rec-item">
-            <div class="rec-item-title">
-              <span class="rec-item-rank {% if rec.rank <= 3 %}rank-{{ rec.rank }}{% endif %}">{{ rec.rank }}</span>
-              {{ rec.title }}
-            </div>
-            <div class="rec-item-score">
-              匹配度：<strong>{{ rec.match_score }}</strong>
-              {% if rec.match_reason %}
-              <br>💡 {{ rec.match_reason }}
-              {% endif %}
+      <div class="timeline-item gsap-fade">
+        <div class="timeline-dot"></div>
+        <div class="timeline-card">
+          <div class="timeline-header">
+            <div class="timeline-time">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              {{ record.created_at }}
             </div>
           </div>
-          {% endfor %}
+
+          <!-- Profile snapshot -->
+          <div class="history-profile">
+            {% if record.profile_snapshot.get('major') %}
+            <span class="profile-tag">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+              {{ record.profile_snapshot.major }}
+            </span>
+            {% endif %}
+            {% if record.profile_snapshot.get('province') %}
+            <span class="profile-tag">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              {{ record.profile_snapshot.province }}
+            </span>
+            {% endif %}
+            {% if record.profile_snapshot.get('skills') %}
+            <span class="profile-tag">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              {{ record.profile_snapshot.skills }}
+            </span>
+            {% endif %}
+          </div>
+
+          <!-- Recommendations -->
+          <div class="rec-list">
+            {% for rec in record.result.get('recommendations', [])[:5] %}
+            <div class="rec-item">
+              <div class="rec-item-title">
+                <span class="rec-item-rank {% if rec.rank <= 3 %}rank-{{ rec.rank }}{% endif %}">{{ rec.rank }}</span>
+                {{ rec.title }}
+              </div>
+              <div class="rec-item-score">
+                匹配度：<strong>{{ rec.match_score }}</strong>
+                {% if rec.match_reason %}
+                <br>{{ rec.match_reason }}
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
         </div>
       </div>
       {% endfor %}
-
-      {% else %}
-      <div class="empty-state">
-        <div class="icon">📭</div>
-        <p>暂无推荐记录</p>
-        <p style="font-size: 14px; margin-top: 8px;">
-          <a href="{{ url_for('index') }}" style="color: var(--primary-color);">去获取推荐 →</a>
-        </p>
-      </div>
-      {% endif %}
     </div>
+
+    {% else %}
+    <div class="empty-state">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <p>暂无推荐记录</p>
+      <p style="font-size: 14px;">
+        <a href="{{ url_for('index') }}">去获取推荐</a>
+      </p>
+    </div>
+    {% endif %}
+
   </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      gsap.registerPlugin(ScrollTrigger);
+
+      // Scrubbing fade-in for timeline items
+      gsap.utils.toArray('.gsap-fade').forEach(el => {
+        gsap.from(el, {
+          scrollTrigger: {
+            trigger: el,
+            start: 'top 88%',
+            end: 'top 65%',
+            scrub: 1,
+          },
+          y: 24,
+          opacity: 0,
+        });
+      });
+
+      // Card stacking: timeline items animate from bottom as you scroll
+      gsap.utils.toArray('.timeline-item').forEach((item, i) => {
+        gsap.from(item, {
+          scrollTrigger: {
+            trigger: item,
+            start: 'top 85%',
+            toggleActions: 'play none none none',
+          },
+          x: -20,
+          opacity: 0,
+          duration: 0.6,
+          delay: i * 0.05,
+          ease: 'power3.out',
+        });
+      });
+    });
+  </script>
 
 </body>
 </html>

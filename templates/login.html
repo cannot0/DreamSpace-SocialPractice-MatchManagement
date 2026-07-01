@@ -3,179 +3,92 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>登录 - 大学生返家乡实践活动推荐系统</title>
+  <title>登录 — 返家乡实践活动推荐系统</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='common.css') }}">
-  <style>
-    .auth-container {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--bg-color);
-      padding: 20px;
-    }
-
-    .auth-card {
-      background: var(--card-bg);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow-card);
-      padding: 40px 36px;
-      width: 100%;
-      max-width: 420px;
-    }
-
-    .auth-header {
-      text-align: center;
-      margin-bottom: 32px;
-    }
-
-    .auth-header .logo {
-      font-size: 48px;
-      margin-bottom: 12px;
-    }
-
-    .auth-header h1 {
-      font-size: 22px;
-      font-weight: 600;
-      color: var(--text-primary);
-      margin-bottom: 6px;
-    }
-
-    .auth-header p {
-      font-size: 14px;
-      color: var(--text-muted);
-    }
-
-    .auth-form .form-group {
-      margin-bottom: 20px;
-    }
-
-    .auth-form label {
-      display: block;
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--text-secondary);
-      margin-bottom: 6px;
-    }
-
-    .auth-form input {
-      width: 100%;
-      height: 44px;
-      padding: 0 14px;
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-sm);
-      font-size: 14px;
-      color: var(--text-primary);
-      background: #fafbfc;
-      transition: var(--transition);
-      outline: none;
-    }
-
-    .auth-form input:focus {
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 3px var(--primary-light);
-      background: #fff;
-    }
-
-    .auth-form input::placeholder {
-      color: #c0c4cc;
-    }
-
-    .auth-btn {
-      width: 100%;
-      height: 48px;
-      background: var(--primary-color);
-      color: #fff;
-      border: none;
-      border-radius: var(--radius-sm);
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: var(--transition);
-      margin-top: 8px;
-    }
-
-    .auth-btn:hover {
-      background: var(--primary-hover);
-      box-shadow: 0 4px 16px rgba(22, 119, 255, 0.35);
-    }
-
-    .auth-footer {
-      text-align: center;
-      margin-top: 20px;
-      font-size: 14px;
-      color: var(--text-muted);
-    }
-
-    .auth-footer a {
-      color: var(--primary-color);
-      text-decoration: none;
-    }
-
-    .auth-footer a:hover {
-      text-decoration: underline;
-    }
-
-    .error-message {
-      background: #fff2f0;
-      border: 1px solid #ffccc7;
-      border-radius: var(--radius-sm);
-      padding: 10px 14px;
-      margin-bottom: 20px;
-      font-size: 14px;
-      color: var(--danger-color);
-    }
-
-    .rate-limit-message {
-      background: #fff7e6;
-      border: 1px solid #ffd591;
-      border-radius: var(--radius-sm);
-      padding: 10px 14px;
-      margin-bottom: 20px;
-      font-size: 14px;
-      color: var(--warning-color);
-    }
-  </style>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 </head>
 <body>
 
-  <div class="auth-container">
-    <div class="auth-card">
-      <div class="auth-header">
-        <div class="logo">🎓</div>
-        <h1>返家乡实践活动推荐系统</h1>
-        <p>登录后使用 AI 推荐功能</p>
+  <div class="auth-page">
+    <!-- Left: Cinematic Visual -->
+    <div class="auth-visual">
+      <div class="auth-visual-bg" style="background-image: url('https://picsum.photos/seed/hometown/1200/900')"></div>
+      <div class="auth-visual-overlay"></div>
+      <div class="auth-visual-content" id="visualContent">
+        <h2>找到属于你的<br>返家乡实践</h2>
+        <p>AI 驱动的个性化推荐引擎，从数千个实践中精准匹配最适合你的那一个。填写你的专业、技能与偏好，让智能算法为你排序。</p>
       </div>
+    </div>
 
-      {% if error %}
-      <div class="error-message">{{ error }}</div>
-      {% endif %}
-
-      {% if rate_limited %}
-      <div class="rate-limit-message">登录失败次数过多，请 5 分钟后再试</div>
-      {% endif %}
-
-      <form class="auth-form" method="POST" action="{{ url_for('login') }}">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-
-        <div class="form-group">
-          <label for="username">用户名</label>
-          <input type="text" id="username" name="username" placeholder="请输入用户名" required autofocus>
+    <!-- Right: Login Form -->
+    <div class="auth-form-side">
+      <div class="auth-card" id="authCard">
+        <div class="auth-header">
+          <span class="logo">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-primary)">
+              <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+              <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+            </svg>
+          </span>
+          <h1>欢迎回来</h1>
+          <p>登录后使用 AI 推荐功能</p>
         </div>
 
-        <div class="form-group">
-          <label for="password">密码</label>
-          <input type="password" id="password" name="password" placeholder="请输入密码" required>
+        {% if error %}
+        <div class="error-message">{{ error }}</div>
+        {% endif %}
+
+        {% if rate_limited %}
+        <div class="rate-limit-message">登录失败次数过多，请 5 分钟后再试</div>
+        {% endif %}
+
+        <form class="auth-form" method="POST" action="{{ url_for('login') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+          <div class="form-group">
+            <label for="username">用户名</label>
+            <input type="text" id="username" name="username" placeholder="输入你的用户名" required autofocus>
+          </div>
+
+          <div class="form-group">
+            <label for="password">密码</label>
+            <input type="password" id="password" name="password" placeholder="输入密码" required>
+          </div>
+
+          <button type="submit" class="auth-btn">登 录</button>
+        </form>
+
+        <div class="auth-footer">
+          还没有账号？<a href="{{ url_for('register') }}">立即注册</a>
         </div>
-
-        <button type="submit" class="auth-btn">登 录</button>
-      </form>
-
-      <div class="auth-footer">
-        还没有账号？<a href="{{ url_for('register') }}">立即注册</a>
       </div>
     </div>
   </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+
+      tl.from('#visualContent h2', {
+        y: 40, opacity: 0, duration: 0.9, delay: 0.2
+      })
+      .from('#visualContent p', {
+        y: 30, opacity: 0, duration: 0.7
+      }, '-=0.5')
+      .from('#authCard', {
+        x: 40, opacity: 0, duration: 0.8
+      }, '-=0.6')
+      .from('#authCard .form-group', {
+        y: 20, opacity: 0, duration: 0.5, stagger: 0.1
+      }, '-=0.4')
+      .from('#authCard .auth-btn', {
+        y: 16, opacity: 0, duration: 0.5
+      }, '-=0.2')
+      .from('#authCard .auth-footer', {
+        opacity: 0, duration: 0.4
+      }, '-=0.2');
+    });
+  </script>
 
 </body>
 </html>

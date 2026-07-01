@@ -3,506 +3,443 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>大学生返家乡实践活动推荐系统</title>
+  <title>返家乡实践活动推荐系统</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='common.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
 
-  <!-- ==================== 全局样式 ==================== -->
   <style>
-    /* ---------- CSS 变量：统一管理配色 ---------- */
-    :root {
-      --primary-color: #1677ff;
-      --primary-hover: #4096ff;
-      --primary-light: #e6f4ff;
-      --success-color: #52c41a;
-      --success-light: #f6ffed;
-      --warning-color: #fa8c16;
-      --warning-light: #fff7e6;
-      --danger-color: #ff4d4f;
-      --bg-color: #f5f7fa;
-      --card-bg: #ffffff;
-      --text-primary: #1d1d1f;
-      --text-secondary: #6e6e73;
-      --text-muted: #86868b;
-      --border-color: #e8e8ed;
-      --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.08);
-      --shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
-      --radius: 12px;
-      --radius-sm: 8px;
-      --transition: all 0.25s ease;
-
-      /* 排名专用色 */
-      --gold: #f5a623;
-      --silver: #a0a0b0;
-      --bronze: #cd7f32;
-    }
-
-    /* ---------- 全局重置 ---------- */
-    *, *::before, *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
-                   "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", sans-serif;
-      background: var(--bg-color);
-      color: var(--text-primary);
-      line-height: 1.6;
-      min-height: 100vh;
-    }
-
-    /* ---------- Header ---------- */
-    .header {
-      background: linear-gradient(135deg, #1677ff 0%, #4096ff 50%, #69b1ff 100%);
-      color: #fff;
-      padding: 40px 20px 36px;
-      text-align: center;
+    /* ===============================================================
+       HERO -- Artistic Asymmetry
+       =============================================================== */
+    .hero {
+      min-height: 85vh;
+      display: flex;
+      align-items: center;
       position: relative;
+      overflow: hidden;
+      padding: var(--space-5xl) 0 var(--space-4xl);
+    }
+
+    .hero-container {
+      max-width: var(--container-max);
+      margin: 0 auto;
+      padding: 0 var(--container-padding);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-3xl);
+      align-items: center;
+      width: 100%;
+    }
+
+    .hero-text {
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      background: var(--color-primary-muted);
+      border: 1px solid rgba(79, 140, 255, 0.15);
+      border-radius: var(--radius-full);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--color-primary);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: var(--space-xl);
+    }
+
+    .hero-label-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--color-primary);
+      animation: pulse 2s ease infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .hero h1 {
+      font-size: clamp(2.5rem, 5vw, 4.2rem);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      color: var(--color-text);
+      margin-bottom: var(--space-xl);
+      max-width: 560px;
+    }
+
+    .hero h1 .gradient-text {
+      background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-description {
+      font-size: 17px;
+      color: var(--color-text-secondary);
+      line-height: 1.7;
+      max-width: 480px;
+      margin-bottom: var(--space-2xl);
+    }
+
+    .hero-ctas {
+      display: flex;
+      gap: var(--space-md);
+      flex-wrap: wrap;
+    }
+
+    .hero-visual {
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-image-wrapper {
+      position: relative;
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      aspect-ratio: 4 / 3;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .hero-image-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: brightness(0.8) contrast(1.05) saturate(0.9);
+      transition: transform 1.2s var(--ease-out);
+    }
+
+    .hero-image-wrapper:hover img {
+      transform: scale(1.03);
+    }
+
+    .hero-image-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 40%, rgba(10, 10, 15, 0.6) 100%);
+    }
+
+    .hero-float-card {
+      position: absolute;
+      bottom: -20px;
+      left: -30px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(var(--glass-blur));
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+      z-index: 3;
+      max-width: 220px;
+    }
+
+    .hero-float-card .stat-value {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--color-primary);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .hero-float-card .stat-label {
+      font-size: 12px;
+      color: var(--color-text-muted);
+    }
+
+    /* ===============================================================
+       SECTION DIVIDER
+       =============================================================== */
+    .section-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--color-border), transparent);
+      margin: var(--space-4xl) 0;
+    }
+
+    /* ===============================================================
+       FORM SECTION -- Bento Grid
+       =============================================================== */
+    .form-section {
+      padding: var(--space-3xl) 0;
+    }
+
+    .form-section-header {
+      text-align: center;
+      margin-bottom: var(--space-2xl);
+    }
+
+    .form-section-header h2 {
+      font-size: clamp(1.5rem, 3vw, 2.2rem);
+      font-weight: 700;
+      color: var(--color-text);
+      margin-bottom: var(--space-sm);
+      letter-spacing: -0.02em;
+    }
+
+    .form-section-header p {
+      font-size: 15px;
+      color: var(--color-text-muted);
+    }
+
+    .form-card {
+      max-width: 800px;
+      margin: 0 auto var(--space-xl);
+    }
+
+    .form-card .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: var(--space-lg);
+      padding-bottom: var(--space-md);
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+
+    .form-card .card-title svg {
+      color: var(--color-primary);
+    }
+
+    /* Bento form layout */
+    .form-bento {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: var(--space-md);
+      grid-auto-flow: dense;
+    }
+
+    .form-bento .fg-major    { grid-column: span 5; }
+    .form-bento .fg-grade    { grid-column: span 7; }
+    .form-bento .fg-skills   { grid-column: span 12; }
+    .form-bento .fg-start    { grid-column: span 6; }
+    .form-bento .fg-end      { grid-column: span 6; }
+    .form-bento .fg-province { grid-column: span 6; }
+    .form-bento .fg-city     { grid-column: span 6; }
+    .form-bento .fg-pref     { grid-column: span 12; }
+
+    /* Submit button area */
+    .form-submit-area {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    /* ===============================================================
+       MARQUEE -- Partner Organizations
+       =============================================================== */
+    .marquee-section {
+      padding: var(--space-3xl) 0;
       overflow: hidden;
     }
 
-    .header::after {
-      content: "";
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 30px;
-      background: var(--bg-color);
-      border-radius: 30px 30px 0 0;
+    .marquee-label {
+      text-align: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: var(--space-xl);
     }
 
-    .header h1 {
-      font-size: 28px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      margin-bottom: 8px;
+    .marquee-wrapper {
+      overflow: hidden;
+      mask-image: linear-gradient(90deg, transparent, black 10%, black 90%, transparent);
+      -webkit-mask-image: linear-gradient(90deg, transparent, black 10%, black 90%, transparent);
     }
 
-    .header p {
-      font-size: 15px;
-      opacity: 0.9;
-      font-weight: 400;
+    .marquee-content {
+      display: flex;
+      gap: var(--space-2xl);
+      width: max-content;
+      animation: marqueeScroll 40s linear infinite;
     }
 
-    /* ---------- 主容器 ---------- */
-    .container {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 0 20px 60px;
+    .marquee-content:hover {
+      animation-play-state: paused;
     }
 
-    /* ---------- 通用卡片 ---------- */
-    .card {
-      background: var(--card-bg);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow-card);
-      padding: 28px 32px;
-      margin-bottom: 24px;
-      transition: var(--transition);
-    }
-
-    .card-title {
+    .marquee-item {
+      flex-shrink: 0;
       font-size: 18px;
       font-weight: 600;
-      color: var(--text-primary);
-      margin-bottom: 20px;
-      padding-bottom: 12px;
-      border-bottom: 2px solid var(--primary-light);
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      color: var(--color-text-muted);
+      white-space: nowrap;
+      opacity: 0.5;
+      transition: opacity var(--duration-fast) ease;
     }
 
-    .card-title .icon {
-      font-size: 22px;
-    }
-
-    /* ---------- 表单布局 ---------- */
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 20px;
-    }
-
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .form-group label {
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--text-secondary);
-    }
-
-    .form-group input {
-      height: 42px;
-      padding: 0 14px;
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-sm);
-      font-size: 14px;
-      color: var(--text-primary);
-      background: #fafbfc;
-      transition: var(--transition);
-      outline: none;
-    }
-
-    .form-group input:focus {
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 3px var(--primary-light);
-      background: #fff;
-    }
-
-    .form-group input::placeholder {
-      color: #c0c4cc;
-    }
-
-    .form-hint {
-      font-size: 12px;
-      color: var(--text-muted);
-    }
-
-    /* ---------- 技能标签输入 ---------- */
-    .tag-input-wrapper {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      padding: 8px 12px;
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-sm);
-      background: #fafbfc;
-      min-height: 44px;
-      align-items: center;
-      cursor: text;
-      transition: var(--transition);
-    }
-
-    .tag-input-wrapper:focus-within {
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 3px var(--primary-light);
-      background: #fff;
-    }
-
-    .tag-item {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 4px 10px;
-      background: var(--primary-light);
-      color: var(--primary-color);
-      border-radius: 20px;
-      font-size: 13px;
-      font-weight: 500;
-      animation: fadeIn 0.2s ease;
-    }
-
-    .tag-item .tag-remove {
-      cursor: pointer;
-      font-size: 16px;
-      line-height: 1;
-      opacity: 0.6;
-      transition: var(--transition);
-    }
-
-    .tag-item .tag-remove:hover {
+    .marquee-item:hover {
       opacity: 1;
+      color: var(--color-text-secondary);
     }
 
-    .tag-input-inner {
-      border: none;
-      outline: none;
-      flex: 1;
-      min-width: 100px;
-      font-size: 14px;
-      background: transparent;
-      padding: 4px 0;
+    @keyframes marqueeScroll {
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
     }
 
-    /* ---------- 按钮 ---------- */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      height: 48px;
-      padding: 0 32px;
-      font-size: 16px;
-      font-weight: 600;
-      border: none;
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      transition: var(--transition);
-      letter-spacing: 0.5px;
-    }
-
-    .btn-primary {
-      background: var(--primary-color);
-      color: #fff;
-    }
-
-    .btn-primary:hover {
-      background: var(--primary-hover);
-      box-shadow: 0 4px 16px rgba(22, 119, 255, 0.35);
-      transform: translateY(-1px);
-    }
-
-    .btn-primary:active {
-      transform: translateY(0);
-    }
-
-    .btn-block {
-      width: 100%;
-      display: flex;
-    }
-
-    .btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    /* ---------- 推荐结果区域 ---------- */
+    /* ===============================================================
+       RESULTS SECTION
+       =============================================================== */
     .results-section {
       display: none;
+      padding: var(--space-2xl) 0;
     }
 
     .results-section.active {
       display: block;
-      animation: fadeIn 0.4s ease;
     }
 
-    .results-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 20px;
+    .results-header {
+      text-align: center;
+      margin-bottom: var(--space-2xl);
     }
 
-    /* ---------- 推荐卡片 ---------- */
-    .rec-card {
-      background: var(--card-bg);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow-card);
-      padding: 24px;
-      transition: var(--transition);
-      position: relative;
-      border: 2px solid transparent;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .rec-card:hover {
-      box-shadow: var(--shadow-card-hover);
-      transform: translateY(-4px);
-    }
-
-    /* Top3 特殊样式 */
-    .rec-card.rank-1 {
-      border-color: var(--gold);
-      transform: scale(1.02);
-    }
-
-    .rec-card.rank-2 {
-      border-color: var(--silver);
-      transform: scale(1.01);
-    }
-
-    .rec-card.rank-3 {
-      border-color: var(--bronze);
-    }
-
-    .rec-card.rank-1:hover,
-    .rec-card.rank-2:hover {
-      transform: scale(1.03);
-    }
-
-    .rec-card.rank-3:hover {
-      transform: scale(1.01) translateY(-4px);
-    }
-
-    /* 卡片头部：排名 + 标题 */
-    .rec-card-header {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-    }
-
-    .rec-rank {
-      flex-shrink: 0;
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    .results-header h2 {
+      font-size: clamp(1.5rem, 3vw, 2rem);
       font-weight: 700;
-      font-size: 16px;
-      color: #fff;
-      background: var(--primary-color);
+      color: var(--color-text);
+      margin-bottom: var(--space-sm);
     }
 
-    .rec-card.rank-1 .rec-rank { background: var(--gold); }
-    .rec-card.rank-2 .rec-rank { background: var(--silver); }
-    .rec-card.rank-3 .rec-rank { background: var(--bronze); }
+    .results-header p {
+      font-size: 14px;
+      color: var(--color-text-muted);
+    }
 
-    .rec-title {
-      font-size: 16px;
+    /* ===============================================================
+       FOOTER
+       =============================================================== */
+    .site-footer {
+      padding: var(--space-4xl) 0 var(--space-2xl);
+      border-top: 1px solid var(--color-border);
+      margin-top: var(--space-4xl);
+    }
+
+    .footer-content {
+      max-width: var(--container-max);
+      margin: 0 auto;
+      padding: 0 var(--container-padding);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-brand {
+      font-size: 15px;
       font-weight: 600;
-      color: var(--text-primary);
-      line-height: 1.4;
-      flex: 1;
+      color: var(--color-text-secondary);
     }
 
-    /* 分数进度条 */
-    .rec-score {
+    .footer-links {
       display: flex;
-      align-items: center;
-      gap: 10px;
+      gap: var(--space-lg);
     }
 
-    .rec-score-label {
+    .footer-links a {
       font-size: 13px;
-      color: var(--text-muted);
-      white-space: nowrap;
+      color: var(--color-text-muted);
     }
 
-    .progress-bar {
-      flex: 1;
-      height: 8px;
-      background: #eeeef2;
-      border-radius: 4px;
-      overflow: hidden;
+    .footer-links a:hover {
+      color: var(--color-primary);
     }
 
-    .progress-fill {
-      height: 100%;
-      border-radius: 4px;
-      transition: width 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
-      width: 0;
-    }
-
-    /* 分数颜色规则 */
-    .progress-fill.score-high { background: var(--success-color); }    /* 90+ */
-    .progress-fill.score-good { background: var(--primary-color); }    /* 80+ */
-    .progress-fill.score-mid  { background: var(--warning-color); }    /* 70+ */
-    .progress-fill.score-low  { background: #bbb; }                    /* <70 */
-
-    .rec-score-value {
-      font-weight: 700;
-      font-size: 18px;
-      white-space: nowrap;
-    }
-
-    .score-high-text { color: var(--success-color); }
-    .score-good-text { color: var(--primary-color); }
-    .score-mid-text  { color: var(--warning-color); }
-    .score-low-text  { color: #999; }
-
-    /* 推荐理由 & 亮点 */
-    .rec-reason,
-    .rec-highlight {
-      font-size: 14px;
-      color: var(--text-secondary);
-      line-height: 1.5;
-    }
-
-    .rec-highlight {
-      padding: 10px 14px;
-      background: #fafbfc;
-      border-radius: var(--radius-sm);
-      border-left: 3px solid var(--primary-color);
-    }
-
-    .rec-highlight::before {
-      content: "✨ ";
-    }
-
-    /* ---------- 状态展示：Loading / Empty / Error ---------- */
-    .state-box {
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 60px 20px;
+    .footer-copy {
       text-align: center;
-      gap: 16px;
+      font-size: 12px;
+      color: var(--color-text-muted);
+      margin-top: var(--space-xl);
+      opacity: 0.5;
     }
 
-    .state-box.active {
-      display: flex;
-      animation: fadeIn 0.3s ease;
-    }
+    /* ===============================================================
+       RESPONSIVE
+       =============================================================== */
+    @media (max-width: 768px) {
+      .hero-container {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
 
-    /* Spinner */
-    .spinner {
-      width: 44px;
-      height: 44px;
-      border: 4px solid var(--border-color);
-      border-top-color: var(--primary-color);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
+      .hero h1 {
+        max-width: 100%;
+      }
 
-    .state-text {
-      font-size: 16px;
-      color: var(--text-secondary);
-    }
+      .hero-description {
+        max-width: 100%;
+        margin-left: auto;
+        margin-right: auto;
+      }
 
-    .state-sub {
-      font-size: 14px;
-      color: var(--text-muted);
-    }
+      .hero-ctas {
+        justify-content: center;
+      }
 
-    .state-icon {
-      font-size: 56px;
-    }
+      .hero-visual {
+        order: -1;
+      }
 
-    /* ---------- Footer ---------- */
-    .footer {
-      text-align: center;
-      padding: 24px;
-      color: var(--text-muted);
-      font-size: 13px;
-    }
+      .hero-float-card {
+        bottom: -10px;
+        left: 10px;
+        padding: var(--space-md);
+      }
 
-    /* ---------- 动画关键帧 ---------- */
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
+      .form-bento .fg-major,
+      .form-bento .fg-grade,
+      .form-bento .fg-start,
+      .form-bento .fg-end,
+      .form-bento .fg-province,
+      .form-bento .fg-city {
+        grid-column: span 12;
+      }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(12px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    /* ---------- 响应式 ---------- */
-    @media (max-width: 640px) {
-      .header h1 { font-size: 22px; }
-      .header p  { font-size: 13px; }
-      .card       { padding: 20px 16px; }
-      .form-grid  { grid-template-columns: 1fr; }
-      .results-grid { grid-template-columns: 1fr; }
-      .rec-card.rank-1,
-      .rec-card.rank-2 { transform: none; }
-      .rec-card.rank-1:hover,
-      .rec-card.rank-2:hover { transform: translateY(-4px); }
+      .footer-content {
+        flex-direction: column;
+        gap: var(--space-md);
+        text-align: center;
+      }
     }
   </style>
 </head>
 <body>
 
-  <!-- 导航栏 -->
+  <!-- ==================== NAVIGATION ==================== -->
   <nav class="navbar">
-    <a class="navbar-brand" href="{{ url_for('index') }}">🎓 返家乡推荐系统</a>
+    <a class="navbar-brand" href="{{ url_for('index') }}">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-primary)">
+        <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+        <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+      </svg>
+      返家乡推荐
+    </a>
     <div class="navbar-user">
       <ul class="navbar-nav">
-        <li><a href="{{ url_for('index') }}" class="active">🔍 获取推荐</a></li>
-        <li><a href="{{ url_for('history') }}">📜 推荐历史</a></li>
+        <li><a href="{{ url_for('index') }}" class="active">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          获取推荐
+        </a></li>
+        <li><a href="{{ url_for('history') }}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          推荐历史
+        </a></li>
         {% if is_admin %}
-        <li><a href="{{ url_for('admin') }}">⚙️ 管理后台</a></li>
+        <li><a href="{{ url_for('admin') }}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          管理后台
+        </a></li>
         {% endif %}
       </ul>
       <span class="username">{{ nickname or username }}</span>
@@ -510,130 +447,211 @@
     </div>
   </nav>
 
-  <!-- ==================== Header ==================== -->
-  <header class="header">
-    <h1>🎓 大学生返家乡实践活动推荐系统</h1>
-    <p>基于 AI 的个性化实践项目匹配，助你找到最适合的返家乡活动</p>
-  </header>
-
-  <!-- ==================== 主内容区 ==================== -->
-  <main class="container">
-
-    <!-- ===== 表单卡片 ===== -->
-    <div class="card" id="formCard">
-      <div class="card-title">
-        <span class="icon">📋</span> 学生画像
+  <!-- ==================== HERO -- Artistic Asymmetry ==================== -->
+  <section class="hero">
+    <div class="hero-container">
+      <div class="hero-text" id="heroText">
+        <div class="hero-label">
+          <span class="hero-label-dot"></span>
+          AI 驱动推荐
+        </div>
+        <h1>
+          找到最适合你的<br>
+          <span class="gradient-text">返家乡实践</span>
+        </h1>
+        <p class="hero-description">
+          基于你的专业背景、技能栈和时间偏好，AI 从数千个实践中精准筛选、智能排序，为你呈现最匹配的返家乡活动。
+        </p>
+        <div class="hero-ctas">
+          <a href="#formSection" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            开始匹配
+          </a>
+          <a href="{{ url_for('history') }}" class="btn btn-ghost">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            查看历史
+          </a>
+        </div>
       </div>
 
-      <div class="form-grid">
-
-        <!-- 基本信息 -->
-        <div class="form-group">
-          <label for="major">专业 *</label>
-          <input type="text" id="major" placeholder="例如：智能科学与技术" required>
+      <div class="hero-visual" id="heroVisual">
+        <div class="hero-image-wrapper">
+          <img src="https://picsum.photos/seed/summer2026/800/600" alt="返家乡实践">
+          <div class="hero-image-overlay"></div>
         </div>
-
-        <div class="form-group">
-          <label for="grade">年级</label>
-          <input type="text" id="grade" placeholder="例如：大三">
+        <div class="hero-float-card" id="floatCard">
+          <div class="stat-value">3000+</div>
+          <div class="stat-label">优质实践活动</div>
         </div>
-
-        <!-- 技能（自由输入，标签形式） -->
-        <div class="form-group" style="grid-column: 1 / -1;">
-          <label>技能</label>
-          <div class="tag-input-wrapper" id="skillTagWrapper">
-            <input
-              type="text"
-              class="tag-input-inner"
-              id="skillInput"
-              placeholder="输入技能后按回车添加，例如：Python、数据分析"
-            >
-          </div>
-          <span class="form-hint">按回车键添加技能标签，AI 将据此分析匹配度</span>
-        </div>
-
-        <!-- 时间段 -->
-        <div class="form-group">
-          <label for="startDate">可参加开始日期 *</label>
-          <input type="date" id="startDate" required>
-        </div>
-
-        <div class="form-group">
-          <label for="endDate">可参加结束日期 *</label>
-          <input type="date" id="endDate" required>
-        </div>
-
-        <!-- 地区 -->
-        <div class="form-group">
-          <label for="province">省份 *</label>
-          <input type="text" id="province" placeholder="例如：广东省" required>
-        </div>
-
-        <div class="form-group">
-          <label for="city">城市</label>
-          <input type="text" id="city" placeholder="例如：广州市">
-        </div>
-
-        <!-- 偏好（自由输入） -->
-        <div class="form-group" style="grid-column: 1 / -1;">
-          <label for="preference">兴趣偏好</label>
-          <input type="text" id="preference" placeholder="例如：科技创新、社区服务、文化传承等，AI 将智能分析">
-          <span class="form-hint">可以自由描述你感兴趣的方向，AI 将智能理解</span>
-        </div>
-
       </div>
     </div>
+  </section>
 
-    <!-- ===== 推荐按钮 ===== -->
-    <button class="btn btn-primary btn-block" id="submitBtn" onclick="handleSubmit()">
-      🔍 获取推荐
-    </button>
+  <!-- ==================== MAIN CONTENT ==================== -->
+  <main class="container" id="mainContent">
 
-    <!-- ===== 推荐结果区域 ===== -->
-    <div class="results-section" id="resultsSection">
+    <!-- ===== Form Section ===== -->
+    <section class="form-section" id="formSection">
+      <div class="form-section-header gsap-fade">
+        <h2>填写你的画像</h2>
+        <p>信息越完整，推荐越精准</p>
+      </div>
 
-      <!-- Loading 状态 -->
+      <div class="form-card card gsap-fade" id="formCard">
+        <div class="card-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+          学生画像
+        </div>
+
+        <div class="form-bento">
+          <div class="form-group fg-major">
+            <label for="major">专业</label>
+            <input type="text" id="major" placeholder="例如：智能科学与技术" required>
+          </div>
+
+          <div class="form-group fg-grade">
+            <label for="grade">年级</label>
+            <input type="text" id="grade" placeholder="例如：大三">
+          </div>
+
+          <div class="form-group fg-skills">
+            <label>技能</label>
+            <div class="tag-input-wrapper" id="skillTagWrapper">
+              <input type="text" class="tag-input-inner" id="skillInput"
+                     placeholder="输入技能后按回车添加，例如：Python、数据分析">
+            </div>
+            <span class="form-hint">按回车键添加技能标签，AI 将据此分析匹配度</span>
+          </div>
+
+          <div class="form-group fg-start">
+            <label for="startDate">可参加开始日期</label>
+            <input type="date" id="startDate" required>
+          </div>
+
+          <div class="form-group fg-end">
+            <label for="endDate">可参加结束日期</label>
+            <input type="date" id="endDate" required>
+          </div>
+
+          <div class="form-group fg-province">
+            <label for="province">省份</label>
+            <input type="text" id="province" placeholder="例如：广东省" required>
+          </div>
+
+          <div class="form-group fg-city">
+            <label for="city">城市</label>
+            <input type="text" id="city" placeholder="例如：广州市">
+          </div>
+
+          <div class="form-group fg-pref">
+            <label for="preference">兴趣偏好</label>
+            <input type="text" id="preference" placeholder="例如：科技创新、社区服务、文化传承等">
+            <span class="form-hint">可以自由描述你感兴趣的方向，AI 将智能理解</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-submit-area gsap-fade">
+        <button class="btn btn-primary btn-block" id="submitBtn" onclick="handleSubmit()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          获取推荐
+        </button>
+      </div>
+    </section>
+
+    <!-- ===== Results Section ===== -->
+    <section class="results-section" id="resultsSection">
+
+      <!-- Loading -->
       <div class="card state-box" id="loadingState">
         <div class="spinner"></div>
         <div class="state-text">正在生成推荐结果...</div>
         <div class="state-sub">AI 正在分析你的画像并匹配最佳活动</div>
       </div>
 
-      <!-- Empty 状态 -->
+      <!-- Empty -->
       <div class="card state-box" id="emptyState">
-        <div class="state-icon">📭</div>
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-text-muted)"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         <div class="state-text">暂无匹配活动</div>
         <div class="state-sub">请尝试调整技能或兴趣偏好后重新获取推荐</div>
       </div>
 
-      <!-- Error 状态 -->
+      <!-- Error -->
       <div class="card state-box" id="errorState">
-        <div class="state-icon">⚠️</div>
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-danger)"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
         <div class="state-text">请求失败</div>
         <div class="state-sub" id="errorMessage">请检查后端服务是否启动</div>
       </div>
 
-      <!-- 结果卡片容器 -->
+      <!-- Results Header -->
+      <div class="results-header gsap-fade" id="resultsHeader">
+        <h2>为你匹配的实践</h2>
+        <p>按匹配度从高到低排列</p>
+      </div>
+
+      <!-- Results Grid -->
       <div class="results-grid" id="resultsGrid"></div>
-    </div>
+    </section>
+
+    <!-- ===== Marquee Section ===== -->
+    <section class="marquee-section gsap-fade">
+      <div class="marquee-label">覆盖全国各省市实践单位</div>
+      <div class="marquee-wrapper">
+        <div class="marquee-content">
+          <span class="marquee-item">云南省团委</span>
+          <span class="marquee-item">广东省学联</span>
+          <span class="marquee-item">浙江省人才中心</span>
+          <span class="marquee-item">四川省社会实践基地</span>
+          <span class="marquee-item">江苏省青年发展中心</span>
+          <span class="marquee-item">山东省大学生实习基地</span>
+          <span class="marquee-item">湖南省创新创业中心</span>
+          <span class="marquee-item">河南省返乡创业园</span>
+          <span class="marquee-item">湖北省大学生实践联盟</span>
+          <span class="marquee-item">福建省青年人才驿站</span>
+          <span class="marquee-item">江西省大学生社会实践</span>
+          <span class="marquee-item">安徽省青年发展基金会</span>
+          <!-- Duplicate for seamless loop -->
+          <span class="marquee-item">云南省团委</span>
+          <span class="marquee-item">广东省学联</span>
+          <span class="marquee-item">浙江省人才中心</span>
+          <span class="marquee-item">四川省社会实践基地</span>
+          <span class="marquee-item">江苏省青年发展中心</span>
+          <span class="marquee-item">山东省大学生实习基地</span>
+          <span class="marquee-item">湖南省创新创业中心</span>
+          <span class="marquee-item">河南省返乡创业园</span>
+          <span class="marquee-item">湖北省大学生实践联盟</span>
+          <span class="marquee-item">福建省青年人才驿站</span>
+          <span class="marquee-item">江西省大学生社会实践</span>
+          <span class="marquee-item">安徽省青年发展基金会</span>
+        </div>
+      </div>
+    </section>
 
   </main>
 
-  <!-- ==================== Footer ==================== -->
-  <footer class="footer">
-    大学生返家乡实践活动推荐系统 · Powered by AI
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="site-footer">
+    <div class="footer-content">
+      <div class="footer-brand">返家乡推荐系统</div>
+      <div class="footer-links">
+        <a href="{{ url_for('index') }}">获取推荐</a>
+        <a href="{{ url_for('history') }}">推荐历史</a>
+        {% if is_admin %}
+        <a href="{{ url_for('admin') }}">管理后台</a>
+        {% endif %}
+      </div>
+    </div>
+    <div class="footer-copy">Powered by AI</div>
   </footer>
 
-  <!-- ==================== JavaScript：模块化架构 ==================== -->
+  <!-- ==================== JAVASCRIPT ==================== -->
   {% raw %}<script>
   /* ==================================================================
-   *  1. DOM 引用：统一管理所有选择器
+   *  DOM References
    * ================================================================== */
   const DOM = {
     formCard:       document.getElementById('formCard'),
     submitBtn:      document.getElementById('submitBtn'),
-
-    /* 表单字段 */
     major:          document.getElementById('major'),
     grade:          document.getElementById('grade'),
     skillWrapper:   document.getElementById('skillTagWrapper'),
@@ -643,44 +661,30 @@
     province:       document.getElementById('province'),
     city:           document.getElementById('city'),
     preference:     document.getElementById('preference'),
-
-    /* 结果区域 */
-    resultsSection:  document.getElementById('resultsSection'),
-    loadingState:    document.getElementById('loadingState'),
-    emptyState:      document.getElementById('emptyState'),
-    errorState:      document.getElementById('errorState'),
-    errorMessage:    document.getElementById('errorMessage'),
-    resultsGrid:     document.getElementById('resultsGrid'),
+    resultsSection: document.getElementById('resultsSection'),
+    loadingState:   document.getElementById('loadingState'),
+    emptyState:     document.getElementById('emptyState'),
+    errorState:     document.getElementById('errorState'),
+    errorMessage:   document.getElementById('errorMessage'),
+    resultsGrid:    document.getElementById('resultsGrid'),
+    resultsHeader:  document.getElementById('resultsHeader'),
   };
 
   /* ==================================================================
-   *  2. 技能标签管理
+   *  Form Manager
    * ================================================================== */
   const FormManager = {
-    /* 存储已添加的技能标签 */
     _skills: [],
 
-    /**
-     * 初始化：绑定标签输入事件
-     */
     init() {
       DOM.skillInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
           e.preventDefault();
           const value = DOM.skillInput.value.trim();
-          if (value) {
-            this.addSkill(value);
-            DOM.skillInput.value = '';
-          }
+          if (value) { this.addSkill(value); DOM.skillInput.value = ''; }
         }
       });
-
-      /* 点击 wrapper 聚焦输入框 */
-      DOM.skillWrapper.addEventListener('click', () => {
-        DOM.skillInput.focus();
-      });
-
-      /* 回删：输入框为空时按 Backspace 删除最后一个标签 */
+      DOM.skillWrapper.addEventListener('click', () => DOM.skillInput.focus());
       DOM.skillInput.addEventListener('keydown', (e) => {
         if (e.key === 'Backspace' && DOM.skillInput.value === '' && this._skills.length > 0) {
           this.removeSkill(this._skills.length - 1);
@@ -688,56 +692,40 @@
       });
     },
 
-    /** 添加技能标签 */
     addSkill(text) {
-      /* 去重 */
       if (this._skills.includes(text)) return;
       this._skills.push(text);
       this._render();
     },
 
-    /** 移除技能标签 */
     removeSkill(index) {
       this._skills.splice(index, 1);
       this._render();
     },
 
-    /** 重新渲染标签 */
     _render() {
-      /* 清除现有的标签 DOM（保留输入框） */
       DOM.skillWrapper.querySelectorAll('.tag-item').forEach(el => el.remove());
-
       this._skills.forEach((skill, i) => {
         const tag = document.createElement('span');
         tag.className = 'tag-item';
         tag.innerHTML = `${skill}<span class="tag-remove" data-index="${i}">&times;</span>`;
         DOM.skillWrapper.insertBefore(tag, DOM.skillInput);
       });
-
-      /* 绑定删除事件 */
       DOM.skillWrapper.querySelectorAll('.tag-remove').forEach(btn => {
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
-          const idx = parseInt(btn.dataset.index);
-          this.removeSkill(idx);
+          this.removeSkill(parseInt(btn.dataset.index));
         });
       });
     },
 
-    /** 获取当前所有技能 */
-    getSkills() {
-      return [...this._skills];
-    },
+    getSkills() { return [...this._skills]; },
 
-    /**
-     * 收集整个表单数据
-     * @returns {Object} 用户画像
-     */
     getFormData() {
       return {
         major:           DOM.major.value.trim(),
         grade:           DOM.grade.value.trim(),
-        skills:          this.getSkills().join('，'),
+        skills:          this.getSkills().join(','),
         available_start: DOM.startDate.value,
         available_end:   DOM.endDate.value,
         province:        DOM.province.value.trim(),
@@ -746,10 +734,6 @@
       };
     },
 
-    /**
-     * 验证必填字段
-     * @returns {Object} { valid: boolean, message: string }
-     */
     validate() {
       const data = this.getFormData();
       const required = [
@@ -758,115 +742,71 @@
         { field: 'available_end',   label: '结束日期' },
         { field: 'province',        label: '省份' },
       ];
-
       for (const r of required) {
-        if (!data[r.field]) {
-          return { valid: false, message: `请填写「${r.label}」` };
-        }
+        if (!data[r.field]) return { valid: false, message: `请填写「${r.label}」` };
       }
-
       return { valid: true, message: '' };
     },
   };
 
   /* ==================================================================
-   *  3. API 调用层
+   *  API Layer
    * ================================================================== */
   const API = {
-    /**
-     * 调用推荐接口
-     * @param {Object} profile 学生画像
-     * @returns {Promise<Object>} 推荐结果
-     */
     async getRecommendations(profile) {
       const response = await fetch('/api/recommend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(profile),
       });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
+      if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       const data = await response.json();
-
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
+      if (data.error) throw new Error(data.error);
       return data;
     },
   };
 
   /* ==================================================================
-   *  4. UI 状态管理
+   *  UI State Manager
    * ================================================================== */
   const UI = {
-    /**
-     * 切换结果区域的状态视图
-     * @param {'loading'|'empty'|'error'|'results'|'hidden'} state
-     */
     setState(state) {
-      /* 隐藏所有状态 */
-      [DOM.loadingState, DOM.emptyState, DOM.errorState, DOM.resultsGrid].forEach(el => {
+      [DOM.loadingState, DOM.emptyState, DOM.errorState, DOM.resultsGrid, DOM.resultsHeader].forEach(el => {
         el.classList.remove('active');
       });
-
       if (state === 'hidden') {
         DOM.resultsSection.classList.remove('active');
         return;
       }
-
       DOM.resultsSection.classList.add('active');
-
       switch (state) {
-        case 'loading':
-          DOM.loadingState.classList.add('active');
-          break;
-        case 'empty':
-          DOM.emptyState.classList.add('active');
-          break;
-        case 'error':
-          DOM.errorState.classList.add('active');
-          break;
+        case 'loading': DOM.loadingState.classList.add('active'); break;
+        case 'empty':   DOM.emptyState.classList.add('active'); break;
+        case 'error':   DOM.errorState.classList.add('active'); break;
         case 'results':
+          DOM.resultsHeader.classList.add('active');
           DOM.resultsGrid.classList.add('active');
           break;
       }
     },
 
-    /** 显示错误信息 */
     showError(message) {
       DOM.errorMessage.textContent = message || '请检查后端服务是否启动';
       this.setState('error');
     },
 
-    /** 显示加载状态 */
-    showLoading() {
-      this.setState('loading');
-    },
+    showLoading() { this.setState('loading'); },
 
-    /**
-     * 控制提交按钮状态
-     * @param {boolean} disabled 是否禁用
-     * @param {string} text 按钮文字
-     */
     setSubmitButton(disabled, text) {
       DOM.submitBtn.disabled = disabled;
-      DOM.submitBtn.textContent = text || '🔍 获取推荐';
+      DOM.submitBtn.innerHTML = text || '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> 获取推荐';
     },
   };
 
   /* ==================================================================
-   *  5. 推荐结果渲染器
+   *  Recommendation Renderer
    * ================================================================== */
   const RecommendationRenderer = {
-    /**
-     * 根据分数获取进度条和文字的 CSS 类名
-     * @param {number} score
-     * @returns {{ barClass: string, textClass: string }}
-     */
     _scoreClass(score) {
       if (score >= 90) return { barClass: 'score-high', textClass: 'score-high-text' };
       if (score >= 80) return { barClass: 'score-good', textClass: 'score-good-text' };
@@ -874,26 +814,32 @@
       return             { barClass: 'score-low',  textClass: 'score-low-text'  };
     },
 
-    /**
-     * 渲染全部推荐卡片
-     * @param {Array} recommendations 推荐列表
-     */
     renderCards(recommendations) {
-      /* 清空旧结果 */
       DOM.resultsGrid.innerHTML = '';
-
       if (!recommendations || recommendations.length === 0) {
         UI.setState('empty');
         return;
       }
 
-      recommendations.forEach(item => {
-        DOM.resultsGrid.appendChild(this._createCard(item));
+      recommendations.forEach((item, index) => {
+        const card = this._createCard(item);
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(30px)';
+        DOM.resultsGrid.appendChild(card);
+
+        // Staggered entrance animation
+        gsap.to(card, {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          delay: index * 0.1,
+          ease: 'power3.out',
+        });
       });
 
       UI.setState('results');
 
-      /* 触发进度条动画（延迟一帧让 CSS transition 生效） */
+      // Trigger progress bar animations
       requestAnimationFrame(() => {
         DOM.resultsGrid.querySelectorAll('.progress-fill').forEach(bar => {
           const target = bar.dataset.width;
@@ -902,36 +848,23 @@
       });
     },
 
-    /**
-     * 创建单张推荐卡片
-     * @param {Object} item 单条推荐
-     * @returns {HTMLElement}
-     */
     _createCard(item) {
-      const rank      = item.rank       || 0;
-      const title     = item.title      || '未知活动';
+      const rank      = item.rank || 0;
+      const title     = item.title || '未知活动';
       const score     = item.match_score || 0;
       const reason    = item.match_reason || '';
-      const highlight = item.highlight  || '';
+      const highlight = item.highlight || '';
       const { barClass, textClass } = this._scoreClass(score);
-
-      /* 排名 emoji */
-      const rankEmoji = { 1: '🥇', 2: '🥈', 3: '🥉' };
 
       const card = document.createElement('div');
       card.className = 'rec-card';
-
-      /* Top3 特殊样式 */
-      if (rank <= 3) {
-        card.classList.add(`rank-${rank}`);
-      }
+      if (rank <= 3) card.classList.add(`rank-${rank}`);
 
       card.innerHTML = `
         <div class="rec-card-header">
-          <div class="rec-rank">${rankEmoji[rank] || rank}</div>
+          <div class="rec-rank">${rank}</div>
           <div class="rec-title">${this._escape(title)}</div>
         </div>
-
         <div class="rec-score">
           <span class="rec-score-label">匹配度</span>
           <div class="progress-bar">
@@ -939,15 +872,13 @@
           </div>
           <span class="rec-score-value ${textClass}">${score}</span>
         </div>
-
-        ${reason ? `<div class="rec-reason">💡 ${this._escape(reason)}</div>` : ''}
+        ${reason ? `<div class="rec-reason">${this._escape(reason)}</div>` : ''}
         ${highlight ? `<div class="rec-highlight">${this._escape(highlight)}</div>` : ''}
       `;
 
       return card;
     },
 
-    /** 简单的 XSS 防护 */
     _escape(str) {
       const div = document.createElement('div');
       div.textContent = str;
@@ -956,43 +887,66 @@
   };
 
   /* ==================================================================
-   *  6. 主流程：提交处理
+   *  Main Submit Handler
    * ================================================================== */
   async function handleSubmit() {
-    /* 6.1 表单验证 */
     const validation = FormManager.validate();
-    if (!validation.valid) {
-      alert(validation.message);
-      return;
-    }
+    if (!validation.valid) { alert(validation.message); return; }
 
-    /* 6.2 进入加载态 */
     UI.showLoading();
-    UI.setSubmitButton(true, '⏳ 分析中...');
+    UI.setSubmitButton(true, '<span class="spinner" style="width:18px;height:18px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:8px"></span> 分析中...');
 
     const profile = FormManager.getFormData();
 
     try {
-      /* 6.3 调用 API */
       const data = await API.getRecommendations(profile);
-
-      /* 6.4 渲染结果 */
       RecommendationRenderer.renderCards(data.recommendations);
+
+      // Scroll to results
+      setTimeout(() => {
+        DOM.resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 200);
+
     } catch (err) {
-      /* 6.5 错误处理 */
       console.error('推荐请求失败:', err);
       UI.showError(err.message);
     } finally {
-      /* 6.6 恢复按钮 */
-      UI.setSubmitButton(false, '🔍 重新获取推荐');
+      UI.setSubmitButton(false);
     }
   }
 
   /* ==================================================================
-   *  7. 页面初始化
+   *  GSAP Animations
    * ================================================================== */
   document.addEventListener('DOMContentLoaded', () => {
     FormManager.init();
+    gsap.registerPlugin(ScrollTrigger);
+
+    // Hero entrance
+    const heroTl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    heroTl.from('#heroText .hero-label', { y: 20, opacity: 0, duration: 0.6, delay: 0.2 })
+      .from('#heroText h1', { y: 30, opacity: 0, duration: 0.8 }, '-=0.3')
+      .from('#heroText .hero-description', { y: 20, opacity: 0, duration: 0.6 }, '-=0.4')
+      .from('#heroText .hero-ctas', { y: 16, opacity: 0, duration: 0.5 }, '-=0.3')
+      .from('.hero-image-wrapper', { x: 40, opacity: 0, scale: 0.95, duration: 0.9 }, '-=0.7')
+      .from('#floatCard', { y: 20, opacity: 0, duration: 0.5 }, '-=0.3');
+
+    // Scrubbing text reveals for form section
+    gsap.utils.toArray('.gsap-fade').forEach(el => {
+      gsap.from(el, {
+        scrollTrigger: {
+          trigger: el,
+          start: 'top 85%',
+          end: 'top 60%',
+          scrub: 1,
+        },
+        y: 30,
+        opacity: 0,
+      });
+    });
+
+    // Card stacking for results (applied when cards are rendered)
+    ScrollTrigger.refresh();
   });
   </script>{% endraw %}
 

@@ -3,64 +3,111 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>管理后台 - 返家乡实践活动推荐系统</title>
+  <title>管理后台 — 返家乡实践活动推荐系统</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='common.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+
   <style>
-    .admin-header {
+    .admin-page {
+      padding-top: var(--space-4xl);
+    }
+
+    .admin-page-header {
       display: flex;
       align-items: center;
-      gap: 8px;
-      margin-bottom: 24px;
+      justify-content: space-between;
+      margin-bottom: var(--space-2xl);
     }
 
-    .admin-badge {
-      display: inline-flex;
+    .admin-page-header h1 {
+      font-size: clamp(1.8rem, 3vw, 2.5rem);
+      font-weight: 800;
+      color: var(--color-text);
+      letter-spacing: -0.02em;
+      display: flex;
       align-items: center;
-      gap: 4px;
-      padding: 4px 12px;
-      background: #fff7e6;
-      border: 1px solid #ffd591;
-      border-radius: 20px;
-      font-size: 12px;
-      color: #fa8c16;
-      font-weight: 500;
+      gap: var(--space-md);
     }
 
-    /* 上传区域 */
+    .admin-page-header h1 svg {
+      color: var(--color-primary);
+    }
+
+    /* Bento dashboard grid */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: var(--space-lg);
+      grid-auto-flow: dense;
+    }
+
+    .dash-upload   { grid-column: span 8; }
+    .dash-stats    { grid-column: span 4; }
+    .dash-users    { grid-column: span 12; }
+
+    /* Upload card */
     .upload-area {
-      border: 2px dashed var(--border-color);
-      border-radius: var(--radius);
-      padding: 40px;
+      border: 2px dashed var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-3xl) var(--space-xl);
       text-align: center;
-      transition: var(--transition);
+      transition: all var(--duration-normal) var(--ease-out);
       cursor: pointer;
-      background: #fafbfc;
+      background: var(--color-surface);
+      position: relative;
+      overflow: hidden;
     }
 
-    .upload-area:hover {
-      border-color: var(--primary-color);
-      background: var(--primary-light);
+    .upload-area::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, var(--color-primary-muted), transparent);
+      opacity: 0;
+      transition: opacity var(--duration-normal) ease;
     }
 
+    .upload-area:hover,
     .upload-area.dragover {
-      border-color: var(--primary-color);
-      background: var(--primary-light);
+      border-color: var(--color-primary);
+      background: var(--color-primary-muted);
+    }
+
+    .upload-area:hover::before,
+    .upload-area.dragover::before {
+      opacity: 1;
     }
 
     .upload-icon {
-      font-size: 48px;
-      margin-bottom: 12px;
+      margin-bottom: var(--space-md);
+      position: relative;
+      z-index: 1;
+    }
+
+    .upload-icon svg {
+      color: var(--color-text-muted);
+      transition: color var(--duration-fast) ease;
+    }
+
+    .upload-area:hover .upload-icon svg {
+      color: var(--color-primary);
     }
 
     .upload-text {
       font-size: 16px;
-      color: var(--text-secondary);
-      margin-bottom: 8px;
+      font-weight: 500;
+      color: var(--color-text-secondary);
+      margin-bottom: var(--space-sm);
+      position: relative;
+      z-index: 1;
     }
 
     .upload-hint {
       font-size: 13px;
-      color: var(--text-muted);
+      color: var(--color-text-muted);
+      position: relative;
+      z-index: 1;
     }
 
     .upload-input {
@@ -68,185 +115,289 @@
     }
 
     .upload-status {
-      margin-top: 16px;
-      padding: 12px;
-      border-radius: var(--radius-sm);
+      margin-top: var(--space-md);
+      padding: var(--space-md);
+      border-radius: var(--radius-md);
       font-size: 14px;
       display: none;
     }
 
     .upload-status.success {
       display: block;
-      background: var(--success-light);
-      border: 1px solid #b7eb8f;
-      color: var(--success-color);
+      background: var(--color-success-muted);
+      border: 1px solid rgba(52, 211, 153, 0.2);
+      color: var(--color-success);
     }
 
     .upload-status.error {
       display: block;
-      background: #fff2f0;
-      border: 1px solid #ffccc7;
-      color: var(--danger-color);
+      background: var(--color-danger-muted);
+      border: 1px solid rgba(248, 113, 113, 0.2);
+      color: var(--color-danger);
     }
 
-    /* 用户表格 */
+    /* Stats card */
+    .stat-card-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: var(--space-xl);
+      height: 100%;
+    }
+
+    .stat-number {
+      font-size: 48px;
+      font-weight: 900;
+      color: var(--color-primary);
+      line-height: 1;
+      margin-bottom: var(--space-sm);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: var(--color-text-muted);
+      font-weight: 500;
+    }
+
+    /* Users table */
     .users-table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 16px;
     }
 
     .users-table th,
     .users-table td {
-      padding: 12px 16px;
+      padding: var(--space-md) var(--space-lg);
       text-align: left;
-      border-bottom: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--color-border);
       font-size: 14px;
     }
 
     .users-table th {
-      background: #fafbfc;
-      color: var(--text-secondary);
-      font-weight: 500;
+      background: var(--color-surface);
+      color: var(--color-text-muted);
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      position: sticky;
+      top: 0;
     }
 
-    .users-table tr:hover {
-      background: #fafbfc;
+    .users-table tr {
+      transition: background var(--duration-fast) ease;
+    }
+
+    .users-table tbody tr:hover {
+      background: rgba(255, 255, 255, 0.02);
     }
 
     .users-table .user-id {
-      color: var(--text-muted);
+      color: var(--color-text-muted);
       font-size: 13px;
+      font-variant-numeric: tabular-nums;
+      font-family: var(--font-mono);
     }
 
     .users-count {
       font-size: 14px;
-      color: var(--text-muted);
-      margin-bottom: 12px;
+      color: var(--color-text-muted);
+      margin-bottom: var(--space-md);
     }
 
     .empty-users {
       text-align: center;
-      padding: 40px;
-      color: var(--text-muted);
+      padding: var(--space-2xl);
+      color: var(--color-text-muted);
       font-size: 14px;
     }
 
     .btn-upload {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 10px 24px;
-      background: var(--primary-color);
+      gap: var(--space-sm);
+      padding: var(--space-md) var(--space-xl);
+      background: var(--color-primary);
       color: #fff;
       border: none;
-      border-radius: var(--radius-sm);
+      border-radius: var(--radius-md);
       font-size: 14px;
-      font-weight: 500;
+      font-weight: 600;
+      font-family: var(--font-family);
       cursor: pointer;
-      transition: var(--transition);
-      margin-top: 16px;
+      transition: all var(--duration-normal) var(--ease-out);
+      margin-top: var(--space-md);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-upload::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 50%);
+      opacity: 0;
+      transition: opacity var(--duration-fast) ease;
+    }
+
+    .btn-upload:hover::before {
+      opacity: 1;
     }
 
     .btn-upload:hover {
-      background: var(--primary-hover);
+      background: var(--color-primary-hover);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md), 0 0 20px var(--color-primary-glow);
     }
 
     .btn-upload:disabled {
-      opacity: 0.6;
+      opacity: 0.4;
       cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    @media (max-width: 768px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .dash-upload,
+      .dash-stats {
+        grid-column: span 1;
+      }
     }
   </style>
 </head>
 <body>
 
-  <!-- 导航栏 -->
+  <!-- ==================== NAVIGATION ==================== -->
   <nav class="navbar">
-    <a class="navbar-brand" href="{{ url_for('admin') }}">🎓 返家乡推荐系统</a>
+    <a class="navbar-brand" href="{{ url_for('admin') }}">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-primary)">
+        <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+        <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+      </svg>
+      返家乡推荐
+    </a>
     <div class="navbar-user">
       <ul class="navbar-nav">
-        <li><a href="{{ url_for('index') }}">🔍 获取推荐</a></li>
-        <li><a href="{{ url_for('admin') }}" class="active">⚙️ 管理后台</a></li>
+        <li><a href="{{ url_for('index') }}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          获取推荐
+        </a></li>
+        <li><a href="{{ url_for('admin') }}" class="active">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          管理后台
+        </a></li>
       </ul>
-      <span class="admin-badge">👑 管理员</span>
+      <span class="admin-badge">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        管理员
+      </span>
       <span class="username">{{ nickname or username }}</span>
       <a class="btn-logout" href="{{ url_for('logout') }}">退出</a>
     </div>
   </nav>
 
-  <main class="container">
-    <div class="admin-header">
-      <h2>⚙️ 管理后台</h2>
+  <!-- ==================== MAIN CONTENT ==================== -->
+  <main class="container admin-page">
+
+    <div class="admin-page-header gsap-fade">
+      <h1>
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        管理后台
+      </h1>
     </div>
 
-    <!-- Excel 上传卡片 -->
-    <div class="card">
-      <div class="card-title">
-        <span class="icon">📊</span> 活动数据导入
+    <!-- Dashboard Bento Grid -->
+    <div class="dashboard-grid">
+
+      <!-- Upload Card (8 cols) -->
+      <div class="card dash-upload gsap-fade">
+        <div class="card-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          活动数据导入
+        </div>
+
+        <div class="upload-area" id="uploadArea">
+          <div class="upload-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+          </div>
+          <div class="upload-text">点击或拖拽 Excel 文件到此处</div>
+          <div class="upload-hint">支持 .xlsx 和 .xls 格式</div>
+          <input type="file" class="upload-input" id="fileInput" accept=".xlsx,.xls">
+        </div>
+
+        <div class="upload-status" id="uploadStatus"></div>
+
+        <button class="btn-upload" id="uploadBtn" disabled onclick="handleUpload()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          开始导入
+        </button>
       </div>
 
-      <div class="upload-area" id="uploadArea">
-        <div class="upload-icon">📁</div>
-        <div class="upload-text">点击或拖拽 Excel 文件到此处</div>
-        <div class="upload-hint">支持 .xlsx 和 .xls 格式</div>
-        <input type="file" class="upload-input" id="fileInput" accept=".xlsx,.xls">
+      <!-- Stats Card (4 cols) -->
+      <div class="card dash-stats gsap-fade">
+        <div class="stat-card-inner">
+          <div class="stat-number" id="userCount">{{ users|length }}</div>
+          <div class="stat-label">注册用户</div>
+        </div>
       </div>
 
-      <div class="upload-status" id="uploadStatus"></div>
+      <!-- Users Table (12 cols) -->
+      <div class="card dash-users gsap-fade">
+        <div class="card-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          注册用户
+        </div>
 
-      <button class="btn-upload" id="uploadBtn" disabled onclick="handleUpload()">
-        📤 开始导入
-      </button>
-    </div>
+        <div class="users-count">共 {{ users|length }} 个注册用户</div>
 
-    <!-- 用户列表卡片 -->
-    <div class="card">
-      <div class="card-title">
-        <span class="icon">👥</span> 注册用户
+        {% if users %}
+        <table class="users-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>用户名</th>
+              <th>昵称</th>
+              <th>注册时间</th>
+              <th>最后登录</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for user in users %}
+            <tr>
+              <td class="user-id">{{ user.id }}</td>
+              <td>{{ user.username }}</td>
+              <td>{{ user.nickname }}</td>
+              <td>{{ user.created_at }}</td>
+              <td>{{ user.last_login or '从未登录' }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="empty-users">暂无注册用户</div>
+        {% endif %}
       </div>
 
-      <div class="users-count">共 {{ users|length }} 个注册用户</div>
-
-      {% if users %}
-      <table class="users-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>用户名</th>
-            <th>昵称</th>
-            <th>注册时间</th>
-            <th>最后登录</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for user in users %}
-          <tr>
-            <td class="user-id">{{ user.id }}</td>
-            <td>{{ user.username }}</td>
-            <td>{{ user.nickname }}</td>
-            <td>{{ user.created_at }}</td>
-            <td>{{ user.last_login or '从未登录' }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      {% else %}
-      <div class="empty-users">暂无注册用户</div>
-      {% endif %}
     </div>
   </main>
 
   <script>
+    /* ===== Upload Logic ===== */
     const uploadArea = document.getElementById('uploadArea');
     const fileInput = document.getElementById('fileInput');
     const uploadBtn = document.getElementById('uploadBtn');
     const uploadStatus = document.getElementById('uploadStatus');
     let selectedFile = null;
 
-    // 点击上传区域触发文件选择
     uploadArea.addEventListener('click', () => fileInput.click());
 
-    // 拖拽效果
     uploadArea.addEventListener('dragover', (e) => {
       e.preventDefault();
       uploadArea.classList.add('dragover');
@@ -259,17 +410,11 @@
     uploadArea.addEventListener('drop', (e) => {
       e.preventDefault();
       uploadArea.classList.remove('dragover');
-      const files = e.dataTransfer.files;
-      if (files.length > 0) {
-        handleFileSelect(files[0]);
-      }
+      if (e.dataTransfer.files.length > 0) handleFileSelect(e.dataTransfer.files[0]);
     });
 
-    // 文件选择
     fileInput.addEventListener('change', (e) => {
-      if (e.target.files.length > 0) {
-        handleFileSelect(e.target.files[0]);
-      }
+      if (e.target.files.length > 0) handleFileSelect(e.target.files[0]);
     });
 
     function handleFileSelect(file) {
@@ -285,31 +430,25 @@
 
     async function handleUpload() {
       if (!selectedFile) return;
-
       uploadBtn.disabled = true;
-      uploadBtn.textContent = '⏳ 导入中...';
+      uploadBtn.innerHTML = '<span class="spinner" style="width:16px;height:16px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:6px"></span> 导入中...';
 
       const formData = new FormData();
       formData.append('file', selectedFile);
 
       try {
-        const response = await fetch('/admin/upload', {
-          method: 'POST',
-          body: formData,
-        });
-
+        const response = await fetch('/admin/upload', { method: 'POST', body: formData });
         const data = await response.json();
-
         if (response.ok) {
-          showStatus('success', '✅ ' + (data.message || '导入成功'));
+          showStatus('success', data.message || '导入成功');
         } else {
-          showStatus('error', '❌ ' + (data.error || '导入失败'));
+          showStatus('error', data.error || '导入失败');
         }
       } catch (err) {
-        showStatus('error', '❌ 网络错误：' + err.message);
+        showStatus('error', '网络错误：' + err.message);
       } finally {
         uploadBtn.disabled = false;
-        uploadBtn.textContent = '📤 开始导入';
+        uploadBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> 开始导入';
       }
     }
 
@@ -317,6 +456,45 @@
       uploadStatus.className = 'upload-status ' + type;
       uploadStatus.textContent = message;
     }
+
+    /* ===== GSAP Animations ===== */
+    document.addEventListener('DOMContentLoaded', () => {
+      gsap.registerPlugin(ScrollTrigger);
+
+      // Entrance animations
+      const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+
+      tl.from('.admin-page-header', { y: 20, opacity: 0, duration: 0.6, delay: 0.1 })
+        .from('.dash-upload', { y: 24, opacity: 0, duration: 0.6 }, '-=0.3')
+        .from('.dash-stats', { y: 24, opacity: 0, duration: 0.5 }, '-=0.4')
+        .from('.dash-users', { y: 24, opacity: 0, duration: 0.6 }, '-=0.3');
+
+      // Counter animation for stat number
+      const statEl = document.getElementById('userCount');
+      const target = parseInt(statEl.textContent) || 0;
+      if (target > 0) {
+        gsap.from(statEl, {
+          textContent: 0,
+          duration: 1.2,
+          delay: 0.5,
+          ease: 'power2.out',
+          snap: { textContent: 1 },
+          onUpdate: function() {
+            statEl.textContent = Math.round(this.targets()[0].textContent);
+          }
+        });
+      }
+
+      // Table row stagger
+      gsap.from('.users-table tbody tr', {
+        y: 12,
+        opacity: 0,
+        duration: 0.4,
+        stagger: 0.05,
+        delay: 0.6,
+        ease: 'power2.out',
+      });
+    });
   </script>
 
 </body>
