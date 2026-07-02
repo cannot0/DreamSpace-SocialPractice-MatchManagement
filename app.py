@@ -287,10 +287,11 @@ def admin_online_users():
 def heartbeat():
     """用户心跳接口，更新 last_active 时间戳。"""
     user_id = session.get('user_id')
+    username = session.get('username')
     if user_id is not None:
         success = update_last_active(user_id)
-        logger.debug("Heartbeat: user_id=%s, success=%s", user_id, success)
-    return jsonify({"status": "ok", "user_id": user_id})
+        logger.info("Heartbeat: user_id=%s, username=%s, success=%s", user_id, username, success)
+    return jsonify({"status": "ok", "user_id": user_id, "username": username})
 
 
 # ==================== API 路由 ====================
@@ -350,6 +351,64 @@ def debug_db():
     except Exception as e:
         info["status"] = "error"
         info["error"] = str(e)
+
+
+@app.route("/debug/users", methods=["GET"])
+@admin_required
+def debug_users():
+    """用户状态诊断。"""
+    import psycopg2
+    from config import DATABASE_URL
+    info = {}
+    try:
+        conn = psycopg2.connect(DATABASE_URL)
+        cursor = conn.cursor()
+
+        # 检查 users 表结构
+        cursor.execute("""
+            SELECT column_name, data_type
+            FROM information_schema.columns
+            WHERE table_name = 'users'
+            ORDER BY ordinal_position
+        """)
+        info["columns"] = [{"name": r[0], "type": r[1]} for r in cursor.fetchall()]
+
+        # 检查 last_active 列是否存在
+        info["has_last_active"] = any(c["name"] == "last_active" for c in info["columns"])
+
+        # 获取所有用户的 last_active 值
+        if info["has_last_active"]:
+            cursor.execute("""
+                SELECT id, username, nickname, last_active,
+                       CASE WHEN last_active > NOW() - INTERVAL '5 minutes' THEN true ELSE false END as is_online
+                FROM users
+                ORDER BY id
+            """)
+            info["users"] = [
+                {
+                    "id": r[0],
+                    "username": r[1],
+                    "nickname": r[2],
+                    "last_active": str(r[3]) if r[3] else None,
+                    "is_online": r[4]
+                }
+                for r in cursor.fetchall()
+            ]
+        else:
+            cursor.execute("SELECT id, username, nickname FROM users ORDER BY id")
+            info["users"] = [
+                {"id": r[0], "username": r[1], "nickname": r[2], "last_active": None, "is_online": False}
+                for r in cursor.fetchall()
+            ]
+
+        cursor.close()
+        conn.close()
+        info["status"] = "ok"
+    except Exception as e:
+        info["status"] = "error"
+        info["error"] = str(e)
+        import traceback
+        info["traceback"] = traceback.format_exc()
 
     return jsonify(info)
 
