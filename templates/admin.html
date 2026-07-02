@@ -569,21 +569,32 @@
         const response = await fetch('/admin/online-users');
         if (response.ok) {
           const data = await response.json();
+          console.log('Online users API response:', data);
+
           // Update online count display
           const onlineCountEl = document.getElementById('onlineCount');
           if (onlineCountEl) {
             onlineCountEl.textContent = data.count;
           }
+
           // Build a set of online user IDs from server response
           const onlineIds = new Set((data.online_users || []).map(u => String(u.id)));
+          console.log('Online IDs set:', Array.from(onlineIds));
+
           // Update each row's status dot
           const rows = document.querySelectorAll('#usersTable tbody tr');
+          console.log('Found table rows:', rows.length);
+
           rows.forEach(row => {
             const dot = row.querySelector('.online-dot');
             const statusText = row.querySelector('.status-text');
             const userId = row.dataset.userId;
+            console.log('Checking row:', { userId, dotExists: !!dot, statusTextExists: !!statusText });
+
             if (!dot || !userId) return;
+
             if (onlineIds.has(userId)) {
+              console.log('User', userId, 'is online - updating UI');
               dot.classList.add('active');
               statusText.textContent = '在线';
             } else {
