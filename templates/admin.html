@@ -584,15 +584,22 @@
 
           // Update each row's status dot
           const rows = document.querySelectorAll('#usersTable tbody tr');
+          const debugInfo = [];
 
           rows.forEach(row => {
             const dot = row.querySelector('.online-dot');
             const statusText = row.querySelector('.status-text');
             const userId = row.dataset.userId;
 
-            if (!dot || !userId) return;
+            if (!dot || !userId) {
+              debugInfo.push(`Row: userId=${userId}, dot=${!!dot} - SKIPPED`);
+              return;
+            }
 
-            if (onlineIds.has(userId)) {
+            const isOnline = onlineIds.has(userId);
+            debugInfo.push(`Row: userId="${userId}", onlineIds has: ${isOnline}, type: ${typeof userId}`);
+
+            if (isOnline) {
               dot.classList.add('active');
               statusText.textContent = '在线';
             } else {
@@ -609,8 +616,11 @@
                 <div><strong>Debug Info:</strong></div>
                 <div>Online count from API: ${data.count}</div>
                 <div>Online IDs: ${JSON.stringify(Array.from(onlineIds))}</div>
+                <div>Online IDs types: ${Array.from(onlineIds).map(id => typeof id).join(', ')}</div>
                 <div>Table rows found: ${rows.length}</div>
-                <div>Row user IDs: ${Array.from(rows).map(r => r.dataset.userId).join(', ')}</div>
+                <div>Row user IDs: ${Array.from(rows).map(r => `"${r.dataset.userId}"`).join(', ')}</div>
+                <div style="margin-top:8px;border-top:1px solid #0f0;padding-top:8px;"><strong>Row Matching:</strong></div>
+                ${debugInfo.map(info => `<div>${info}</div>`).join('')}
               </div>
             `;
           }
