@@ -17,9 +17,9 @@ from auth import (
     authenticate_admin,
 )
 from db.user import (
-    create_user, get_user_by_username, update_last_login,
+    create_user, get_user_by_username, update_last_login, update_last_active,
     save_recommendation, get_recommendation_history,
-    get_all_users,
+    get_all_users, get_all_users_with_status, get_online_users,
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -204,9 +204,11 @@ def debug_history():
 @admin_required
 def admin():
     """管理后台页面。"""
-    users = get_all_users()
+    users = get_all_users_with_status()
+    online_users = get_online_users(timeout_minutes=5)
     return render_template("admin.html",
                            users=users,
+                           online_count=len(online_users),
                            username=session.get('username'),
                            nickname=session.get('nickname'))
 
@@ -264,8 +266,29 @@ def admin_upload():
 @admin_required
 def admin_users():
     """用户列表（JSON）。"""
-    users = get_all_users()
+    users = get_all_users_with_status()
     return jsonify({"users": users})
+
+
+@app.route("/admin/online-users")
+@admin_required
+def admin_online_users():
+    """在线用户列表（JSON）。"""
+    online_users = get_online_users(timeout_minutes=5)
+    return jsonify({
+        "online_users": online_users,
+        "count": len(online_users),
+    })
+
+
+@app.route("/heartbeat", methods=["POST"])
+@login_required
+def heartbeat():
+    """用户心跳接口，更新 last_active 时间戳。"""
+    user_id = session.get('user_id')
+    if user_id and user_id != 0:
+        update_last_active(user_id)
+    return jsonify({"status": "ok"})
 
 
 # ==================== API 路由 ====================

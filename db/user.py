@@ -127,6 +127,115 @@ def update_last_login(user_id: int) -> bool:
             conn.close()
 
 
+def update_last_active(user_id: int) -> bool:
+    """更新用户最后活跃时间（心跳接口调用）。
+
+    Args:
+        user_id: 用户ID
+
+    Returns:
+        是否更新成功
+    """
+    try:
+        conn = _get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "UPDATE users SET last_active = CURRENT_TIMESTAMP WHERE id = %s",
+            (user_id,),
+        )
+        conn.commit()
+        return True
+
+    except psycopg2.Error as e:
+        logger.error("更新活跃时间失败: %s", e)
+        return False
+    finally:
+        if "conn" in locals():
+            conn.close()
+
+
+def get_online_users(timeout_minutes: int = 5) -> list:
+    """获取在线用户列表。
+
+    在线判定：last_active 在最近 timeout_minutes 分钟内有更新。
+
+    Args:
+        timeout_minutes: 超时分钟数，默认5分钟
+
+    Returns:
+        在线用户列表
+    """
+    try:
+        conn = _get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            """SELECT id, username, nickname, last_active
+               FROM users
+               WHERE last_active IS NOT NULL
+                 AND last_active > CURRENT_TIMESTAMP - INTERVAL '%s minutes'
+               ORDER BY last_active DESC""",
+            (timeout_minutes,),
+        )
+        rows = cursor.fetchall()
+
+        online_users = []
+        for row in rows:
+            online_users.append({
+                "id": row[0],
+                "username": row[1],
+                "nickname": row[2],
+                "last_active": str(row[3]) if row[3] else "",
+            })
+
+        return online_users
+
+    except psycopg2.Error as e:
+        logger.error("获取在线用户失败: %s", e)
+        return []
+    finally:
+        if "conn" in locals():
+            conn.close()
+
+
+def get_all_users_with_status() -> list:
+    """获取所有用户列表（含在线状态）。
+
+    Returns:
+        用户列表，每个用户为字典格式（不含密码哈希）
+    """
+    try:
+        conn = _get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            """SELECT id, username, nickname, created_at, last_login, last_active
+               FROM users ORDER BY created_at DESC"""
+        )
+        rows = cursor.fetchall()
+
+        users = []
+        for row in rows:
+            users.append({
+                "id": row[0],
+                "username": row[1],
+                "nickname": row[2],
+                "created_at": str(row[3]) if row[3] else "",
+                "last_login": str(row[4]) if row[4] else "",
+                "last_active": str(row[5]) if row[5] else "",
+            })
+
+        return users
+
+    except psycopg2.Error as e:
+        logger.error("获取用户列表失败: %s", e)
+        return []
+    finally:
+        if "conn" in locals():
+            conn.close()
+
+
 def save_user_profile(user_id: int, profile: dict) -> bool:
     """保存用户画像（存在则更新，不存在则插入）。
 

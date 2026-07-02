@@ -44,6 +44,7 @@
 
     .dash-upload   { grid-column: span 8; }
     .dash-stats    { grid-column: span 4; }
+    .dash-online   { grid-column: span 4; }
     .dash-users    { grid-column: span 12; }
 
     /* Upload card */
@@ -162,6 +163,46 @@
       font-weight: 500;
     }
 
+    /* Online status indicator */
+    .online-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--color-text-muted);
+      margin-right: 6px;
+      vertical-align: middle;
+      transition: background var(--duration-fast) ease;
+    }
+
+    .online-dot.active {
+      background: #34d399;
+      box-shadow: 0 0 6px rgba(52, 211, 153, 0.5);
+    }
+
+    .online-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 500;
+      background: rgba(52, 211, 153, 0.1);
+      color: #34d399;
+      border: 1px solid rgba(52, 211, 153, 0.2);
+    }
+
+    .online-badge .online-dot {
+      width: 6px;
+      height: 6px;
+      margin-right: 0;
+    }
+
+    .stat-card-online .stat-number {
+      color: #34d399;
+    }
+
     /* Users table */
     .users-table {
       width: 100%;
@@ -266,7 +307,8 @@
       }
 
       .dash-upload,
-      .dash-stats {
+      .dash-stats,
+      .dash-online {
         grid-column: span 1;
       }
     }
@@ -348,6 +390,18 @@
         </div>
       </div>
 
+      <!-- Online Users Card (4 cols) -->
+      <div class="card dash-online gsap-fade stat-card-online">
+        <div class="stat-card-inner">
+          <div class="stat-number" id="onlineCount">{{ online_count }}</div>
+          <div class="stat-label">当前在线</div>
+          <div class="online-badge" style="margin-top: var(--space-sm)">
+            <span class="online-dot active"></span>
+            <span>实时监控中</span>
+          </div>
+        </div>
+      </div>
+
       <!-- Users Table (12 cols) -->
       <div class="card dash-users gsap-fade">
         <div class="card-title">
@@ -358,24 +412,34 @@
         <div class="users-count">共 {{ users|length }} 个注册用户</div>
 
         {% if users %}
-        <table class="users-table">
+        <table class="users-table" id="usersTable">
           <thead>
             <tr>
               <th>ID</th>
               <th>用户名</th>
               <th>昵称</th>
+              <th>状态</th>
               <th>注册时间</th>
-              <th>最后登录</th>
+              <th>最后活跃</th>
             </tr>
           </thead>
           <tbody>
             {% for user in users %}
-            <tr>
+            <tr data-user-id="{{ user.id }}">
               <td class="user-id">{{ user.id }}</td>
               <td>{{ user.username }}</td>
               <td>{{ user.nickname }}</td>
+              <td>
+                {% if user.last_active %}
+                <span class="online-dot" data-last-active="{{ user.last_active }}"></span>
+                <span class="status-text">离线</span>
+                {% else %}
+                <span class="online-dot"></span>
+                <span class="status-text">从未活跃</span>
+                {% endif %}
+              </td>
               <td>{{ user.created_at }}</td>
-              <td>{{ user.last_login or '从未登录' }}</td>
+              <td>{{ user.last_active or '从未活跃' }}</td>
             </tr>
             {% endfor %}
           </tbody>
@@ -457,12 +521,66 @@
       uploadStatus.textContent = message;
     }
 
+    /* ===== Online Status Logic ===== */
+    const ONLINE_THRESHOLD_MINUTES = 5;
+
+    function isUserOnline(lastActiveStr) {
+      if (!lastActiveStr) return false;
+      const lastActive = new Date(lastActiveStr);
+      const now = new Date();
+      const diffMs = now - lastActive;
+      const diffMinutes = diffMs / (1000 * 60);
+      return diffMinutes < ONLINE_THRESHOLD_MINUTES;
+    }
+
+    function updateOnlineStatus() {
+      const rows = document.querySelectorAll('#usersTable tbody tr');
+      let onlineCount = 0;
+
+      rows.forEach(row => {
+        const dot = row.querySelector('.online-dot');
+        const statusText = row.querySelector('.status-text');
+        const lastActive = dot?.dataset.lastActive;
+
+        if (lastActive && isUserOnline(lastActive)) {
+          dot.classList.add('active');
+          statusText.textContent = '在线';
+          onlineCount++;
+        } else if (dot) {
+          dot.classList.remove('active');
+          statusText.textContent = lastActive ? '离线' : '从未活跃';
+        }
+      });
+
+      // Update online count display
+      const onlineCountEl = document.getElementById('onlineCount');
+      if (onlineCountEl) {
+        onlineCountEl.textContent = onlineCount;
+      }
+    }
+
+    // Refresh online status periodically
+    async function refreshOnlineUsers() {
+      try {
+        const response = await fetch('/admin/online-users');
+        if (response.ok) {
+          const data = await response.json();
+          const onlineCountEl = document.getElementById('onlineCount');
+          if (onlineCountEl) {
+            onlineCountEl.textContent = data.count;
+          }
+        }
+      } catch (err) {
+        console.error('Failed to refresh online status:', err);
+      }
+    }
+
     /* ===== GSAP Animations ===== */
     document.addEventListener('DOMContentLoaded', () => {
       gsap.registerPlugin(ScrollTrigger);
 
       // Entrance animations -- set initial states first, then animate
-      gsap.set(['.admin-page-header', '.dash-upload', '.dash-stats', '.dash-users'], {
+      gsap.set(['.admin-page-header', '.dash-upload', '.dash-stats', '.dash-online', '.dash-users'], {
         opacity: 0, y: 24
       });
 
@@ -470,23 +588,28 @@
       tl.to('.admin-page-header', { y: 0, opacity: 1, duration: 0.6, delay: 0.1 })
         .to('.dash-upload', { y: 0, opacity: 1, duration: 0.6 }, '-=0.3')
         .to('.dash-stats', { y: 0, opacity: 1, duration: 0.5 }, '-=0.4')
+        .to('.dash-online', { y: 0, opacity: 1, duration: 0.5 }, '-=0.4')
         .to('.dash-users', { y: 0, opacity: 1, duration: 0.6 }, '-=0.3');
 
-      // Counter animation for stat number
-      const statEl = document.getElementById('userCount');
-      const target = parseInt(statEl.textContent) || 0;
-      if (target > 0) {
-        gsap.from(statEl, {
-          textContent: 0,
-          duration: 1.2,
-          delay: 0.5,
-          ease: 'power2.out',
-          snap: { textContent: 1 },
-          onUpdate: function() {
-            statEl.textContent = Math.round(this.targets()[0].textContent);
+      // Counter animation for stat numbers
+      ['userCount', 'onlineCount'].forEach(id => {
+        const statEl = document.getElementById(id);
+        if (statEl) {
+          const target = parseInt(statEl.textContent) || 0;
+          if (target > 0) {
+            gsap.from(statEl, {
+              textContent: 0,
+              duration: 1.2,
+              delay: 0.5,
+              ease: 'power2.out',
+              snap: { textContent: 1 },
+              onUpdate: function() {
+                statEl.textContent = Math.round(this.targets()[0].textContent);
+              }
+            });
           }
-        });
-      }
+        }
+      });
 
       // Table row stagger
       gsap.from('.users-table tbody tr', {
@@ -497,6 +620,12 @@
         delay: 0.6,
         ease: 'power2.out',
       });
+
+      // Initial online status update
+      updateOnlineStatus();
+
+      // Refresh online status every 30 seconds
+      setInterval(refreshOnlineUsers, 30000);
     });
   </script>
 

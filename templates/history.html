@@ -378,6 +378,18 @@
           });
         }
       });
+
+      // Heartbeat mechanism - send heartbeat every 60 seconds
+      function sendHeartbeat() {
+        fetch('/heartbeat', { method: 'POST', credentials: 'same-origin' })
+          .catch(err => console.debug('Heartbeat failed:', err));
+      }
+
+      // Send initial heartbeat
+      sendHeartbeat();
+
+      // Send heartbeat every 60 seconds
+      setInterval(sendHeartbeat, 60000);
     });
   </script>
 

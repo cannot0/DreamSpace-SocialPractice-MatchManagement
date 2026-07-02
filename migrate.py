@@ -8,6 +8,9 @@ if not DATABASE_URL:
     exit(0)
 
 MIGRATION_SQL = """
+-- 添加 last_active 列到 users 表（用于在线状态追踪）
+ALTER TABLE users ADD COLUMN IF NOT EXISTS last_active TIMESTAMP;
+
 CREATE OR REPLACE VIEW v_activity_full AS
 SELECT
     a.project_id, a.activity_id, a.title, a.org_name,
@@ -57,6 +60,6 @@ try:
     conn.commit()
     cur.close()
     conn.close()
-    print("✅ 迁移完成：v_activity_full 视图已更新")
+    print("✅ 迁移完成：users.last_active 列已添加，v_activity_full 视图已更新")
 except Exception as e:
     print(f"⚠️ 迁移失败（不影响启动）: {e}")
