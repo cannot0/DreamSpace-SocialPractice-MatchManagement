@@ -207,9 +207,12 @@ def admin():
     """管理后台页面。"""
     users = get_all_users_with_status()
     online_users = get_online_users(timeout_minutes=5)
+    # 管理员也在页面上，应该计入在线人数
+    admin_online = session.get('user_id') is not None
+    online_count = len(online_users) + (1 if admin_online else 0)
     return render_template("admin.html",
                            users=users,
-                           online_count=len(online_users),
+                           online_count=online_count,
                            username=session.get('username'),
                            nickname=session.get('nickname'))
 
@@ -276,9 +279,12 @@ def admin_users():
 def admin_online_users():
     """在线用户列表（JSON）。"""
     online_users = get_online_users(timeout_minutes=5)
+    # 管理员也在线，计入总数
+    admin_online = session.get('user_id') is not None
+    count = len(online_users) + (1 if admin_online else 0)
     return jsonify({
         "online_users": online_users,
-        "count": len(online_users),
+        "count": count,
     })
 
 
