@@ -174,7 +174,7 @@ def get_online_users(timeout_minutes: int = 5) -> list:
             """SELECT id, username, nickname, last_active
                FROM users
                WHERE last_active IS NOT NULL
-                 AND last_active > CURRENT_TIMESTAMP - INTERVAL '%s minutes'
+                 AND last_active > NOW() - (%s || ' minutes')::INTERVAL
                ORDER BY last_active DESC""",
             (timeout_minutes,),
         )

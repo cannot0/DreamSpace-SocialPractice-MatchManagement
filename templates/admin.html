@@ -647,6 +647,14 @@
 
       // Refresh online status every 30 seconds
       setInterval(refreshOnlineUsers, 30000);
+
+      // Heartbeat mechanism for admin page
+      function sendHeartbeat() {
+        fetch('/heartbeat', { method: 'POST', credentials: 'same-origin' })
+          .catch(err => console.debug('Heartbeat failed:', err));
+      }
+      sendHeartbeat();
+      setInterval(sendHeartbeat, 60000);
     });
   </script>
 

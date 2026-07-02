@@ -287,9 +287,10 @@ def admin_online_users():
 def heartbeat():
     """用户心跳接口，更新 last_active 时间戳。"""
     user_id = session.get('user_id')
-    if user_id and user_id != 0:
-        update_last_active(user_id)
-    return jsonify({"status": "ok"})
+    if user_id is not None:
+        success = update_last_active(user_id)
+        logger.debug("Heartbeat: user_id=%s, success=%s", user_id, success)
+    return jsonify({"status": "ok", "user_id": user_id})
 
 
 # ==================== API 路由 ====================
