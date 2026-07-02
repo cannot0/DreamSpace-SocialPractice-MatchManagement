@@ -409,9 +409,6 @@
           注册用户
         </div>
 
-        <!-- Debug Panel -->
-        <div id="debugPanel"></div>
-
         <div class="users-count">共 {{ users|length }} 个注册用户</div>
 
         {% if users %}
@@ -584,22 +581,15 @@
 
           // Update each row's status dot
           const rows = document.querySelectorAll('#usersTable tbody tr');
-          const debugInfo = [];
 
           rows.forEach(row => {
             const dot = row.querySelector('.online-dot');
             const statusText = row.querySelector('.status-text');
             const userId = row.dataset.userId;
 
-            if (!dot || !userId) {
-              debugInfo.push(`Row: userId=${userId}, dot=${!!dot} - SKIPPED`);
-              return;
-            }
+            if (!dot || !userId) return;
 
-            const isOnline = onlineIds.has(userId);
-            debugInfo.push(`Row: userId="${userId}", onlineIds has: ${isOnline}, type: ${typeof userId}`);
-
-            if (isOnline) {
+            if (onlineIds.has(userId)) {
               dot.classList.add('active');
               statusText.textContent = '在线';
             } else {
@@ -607,23 +597,6 @@
               statusText.textContent = dot.dataset.lastActive ? '离线' : '从未活跃';
             }
           });
-
-          // Update debug panel
-          const debugPanel = document.getElementById('debugPanel');
-          if (debugPanel) {
-            debugPanel.innerHTML = `
-              <div style="background:#1a1a2e;color:#0f0;padding:10px;margin:10px 0;border-radius:8px;font-family:monospace;font-size:12px;">
-                <div><strong>Debug Info:</strong></div>
-                <div>Online count from API: ${data.count}</div>
-                <div>Online IDs: ${JSON.stringify(Array.from(onlineIds))}</div>
-                <div>Online IDs types: ${Array.from(onlineIds).map(id => typeof id).join(', ')}</div>
-                <div>Table rows found: ${rows.length}</div>
-                <div>Row user IDs: ${Array.from(rows).map(r => `"${r.dataset.userId}"`).join(', ')}</div>
-                <div style="margin-top:8px;border-top:1px solid #0f0;padding-top:8px;"><strong>Row Matching:</strong></div>
-                ${debugInfo.map(info => `<div>${info}</div>`).join('')}
-              </div>
-            `;
-          }
         }
       } catch (err) {
         console.error('Failed to refresh online status:', err);
