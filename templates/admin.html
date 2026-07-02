@@ -544,6 +544,7 @@
         const dot = row.querySelector('.online-dot');
         const statusText = row.querySelector('.status-text');
         const lastActive = dot?.dataset.lastActive;
+        const userId = row.dataset.userId;
 
         if (lastActive && isUserOnline(lastActive)) {
           dot.classList.add('active');
@@ -580,7 +581,7 @@
           rows.forEach(row => {
             const dot = row.querySelector('.online-dot');
             const statusText = row.querySelector('.status-text');
-            const userId = row.querySelector('td')?.textContent?.trim();
+            const userId = row.dataset.userId;
             if (!dot || !userId) return;
             if (onlineIds.has(userId)) {
               dot.classList.add('active');
