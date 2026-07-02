@@ -71,19 +71,19 @@
     }
 
     .timeline-card {
-      background: var(--color-bg-card);
-      border: 1px solid var(--color-border);
+      background: rgba(255, 255, 255, 0.09);
+      border: 1px solid rgba(255, 255, 255, 0.14);
       border-radius: var(--radius-lg);
       padding: var(--space-xl);
       transition: all var(--duration-normal) var(--ease-out);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
     }
 
     .timeline-card:hover {
-      background: var(--color-bg-card-hover);
-      border-color: rgba(255, 255, 255, 0.18);
+      background: rgba(255, 255, 255, 0.13);
+      border-color: rgba(255, 255, 255, 0.2);
       transform: translateX(4px);
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
     }
 
     .timeline-header {
@@ -353,20 +353,30 @@
         });
       });
 
-      // Card stacking: timeline items animate from bottom as you scroll
+      // Card stacking: timeline items animate from left as you scroll
       gsap.utils.toArray('.timeline-item').forEach((item, i) => {
-        gsap.from(item, {
-          scrollTrigger: {
-            trigger: item,
-            start: 'top 85%',
-            toggleActions: 'play none none none',
-          },
-          x: -20,
-          opacity: 0,
-          duration: 0.6,
-          delay: i * 0.05,
-          ease: 'power3.out',
-        });
+        gsap.set(item, { opacity: 0, x: -20 });
+
+        // First item visible immediately, rest on scroll
+        if (i === 0) {
+          gsap.to(item, {
+            opacity: 1, x: 0,
+            duration: 0.7, delay: 0.3,
+            ease: 'power3.out',
+          });
+        } else {
+          gsap.to(item, {
+            scrollTrigger: {
+              trigger: item,
+              start: 'top 90%',
+              once: true,
+            },
+            opacity: 1, x: 0,
+            duration: 0.6,
+            delay: 0.05,
+            ease: 'power3.out',
+          });
+        }
       });
     });
   </script>
