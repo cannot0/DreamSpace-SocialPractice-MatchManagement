@@ -409,6 +409,9 @@
           注册用户
         </div>
 
+        <!-- Debug Panel -->
+        <div id="debugPanel"></div>
+
         <div class="users-count">共 {{ users|length }} 个注册用户</div>
 
         {% if users %}
@@ -569,7 +572,6 @@
         const response = await fetch('/admin/online-users');
         if (response.ok) {
           const data = await response.json();
-          console.log('Online users API response:', data);
 
           // Update online count display
           const onlineCountEl = document.getElementById('onlineCount');
@@ -579,22 +581,18 @@
 
           // Build a set of online user IDs from server response
           const onlineIds = new Set((data.online_users || []).map(u => String(u.id)));
-          console.log('Online IDs set:', Array.from(onlineIds));
 
           // Update each row's status dot
           const rows = document.querySelectorAll('#usersTable tbody tr');
-          console.log('Found table rows:', rows.length);
 
           rows.forEach(row => {
             const dot = row.querySelector('.online-dot');
             const statusText = row.querySelector('.status-text');
             const userId = row.dataset.userId;
-            console.log('Checking row:', { userId, dotExists: !!dot, statusTextExists: !!statusText });
 
             if (!dot || !userId) return;
 
             if (onlineIds.has(userId)) {
-              console.log('User', userId, 'is online - updating UI');
               dot.classList.add('active');
               statusText.textContent = '在线';
             } else {
@@ -602,6 +600,20 @@
               statusText.textContent = dot.dataset.lastActive ? '离线' : '从未活跃';
             }
           });
+
+          // Update debug panel
+          const debugPanel = document.getElementById('debugPanel');
+          if (debugPanel) {
+            debugPanel.innerHTML = `
+              <div style="background:#1a1a2e;color:#0f0;padding:10px;margin:10px 0;border-radius:8px;font-family:monospace;font-size:12px;">
+                <div><strong>Debug Info:</strong></div>
+                <div>Online count from API: ${data.count}</div>
+                <div>Online IDs: ${JSON.stringify(Array.from(onlineIds))}</div>
+                <div>Table rows found: ${rows.length}</div>
+                <div>Row user IDs: ${Array.from(rows).map(r => r.dataset.userId).join(', ')}</div>
+              </div>
+            `;
+          }
         }
       } catch (err) {
         console.error('Failed to refresh online status:', err);
