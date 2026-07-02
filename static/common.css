@@ -11,21 +11,21 @@
 
 /* ---------- CSS Custom Properties ---------- */
 :root {
-  /* Color Palette -- Deep navy + electric blue */
-  --color-bg:           #0c0c14;
-  --color-bg-elevated:  #16161f;
-  --color-bg-card:      rgba(255, 255, 255, 0.07);
-  --color-bg-card-hover:rgba(255, 255, 255, 0.11);
-  --color-surface:      #1a1a26;
-  --color-surface-alt:  #22222f;
+  /* Color Palette -- Warm amber + celadon blue (hometown warmth + tech clarity) */
+  --color-bg:           #1A1F2E;
+  --color-bg-elevated:  #22252F;
+  --color-bg-card:      rgba(255, 255, 255, 0.06);
+  --color-bg-card-hover:rgba(232, 133, 61, 0.08);
+  --color-surface:      #242A3A;
+  --color-surface-alt:  #2A3040;
 
-  --color-primary:      #4f8cff;
-  --color-primary-hover:#6ea1ff;
-  --color-primary-glow: rgba(79, 140, 255, 0.25);
-  --color-primary-muted:rgba(79, 140, 255, 0.12);
+  --color-primary:      #E8853D;
+  --color-primary-hover:#F09A5A;
+  --color-primary-glow: rgba(232, 133, 61, 0.25);
+  --color-primary-muted:rgba(232, 133, 61, 0.12);
 
-  --color-accent:       #a78bfa;
-  --color-accent-glow:  rgba(167, 139, 250, 0.2);
+  --color-accent:       #F2C94C;
+  --color-accent-glow:  rgba(242, 201, 76, 0.2);
 
   --color-success:      #34d399;
   --color-success-muted:rgba(52, 211, 153, 0.12);
@@ -34,13 +34,13 @@
   --color-danger:       #f87171;
   --color-danger-muted: rgba(248, 113, 113, 0.12);
 
-  --color-text:         #f0f0f5;
-  --color-text-secondary:#9898a8;
-  --color-text-muted:   #6e6e85;
-  --color-text-inverse: #0c0c14;
+  --color-text:         #F5F0EA;
+  --color-text-secondary:#B0A89C;
+  --color-text-muted:   #7A7268;
+  --color-text-inverse: #1A1F2E;
 
-  --color-border:       rgba(255, 255, 255, 0.12);
-  --color-border-focus: rgba(79, 140, 255, 0.5);
+  --color-border:       rgba(255, 255, 255, 0.10);
+  --color-border-focus: rgba(232, 133, 61, 0.5);
 
   /* Ranking */
   --color-gold:   #fbbf24;
@@ -84,8 +84,8 @@
   --duration-slow:   0.6s;
 
   /* Glass */
-  --glass-bg:     rgba(255, 255, 255, 0.03);
-  --glass-border: rgba(255, 255, 255, 0.06);
+  --glass-bg:     rgba(255, 255, 255, 0.04);
+  --glass-border: rgba(232, 133, 61, 0.08);
   --glass-blur:   20px;
 
   /* Grid */
@@ -139,9 +139,9 @@ body::before {
   width: 200%;
   height: 200%;
   background:
-    radial-gradient(ellipse at 20% 50%, rgba(79, 140, 255, 0.06) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 20%, rgba(167, 139, 250, 0.04) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 80%, rgba(52, 211, 153, 0.03) 0%, transparent 50%);
+    radial-gradient(ellipse at 20% 50%, rgba(232, 133, 61, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(242, 201, 76, 0.04) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(74, 158, 194, 0.03) 0%, transparent 50%);
   pointer-events: none;
   z-index: 0;
 }
@@ -178,10 +178,10 @@ body > * {
   align-items: center;
   justify-content: space-between;
   padding: 0 var(--space-lg);
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(36, 42, 58, 0.7);
   backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(232, 133, 61, 0.08);
   border-radius: var(--radius-full);
   z-index: 1000;
   transition: all var(--duration-normal) var(--ease-out);
@@ -189,8 +189,8 @@ body > * {
 }
 
 .navbar:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(36, 42, 58, 0.8);
+  border-color: rgba(232, 133, 61, 0.12);
 }
 
 .navbar-brand {
@@ -235,12 +235,12 @@ body > * {
 
 .navbar-nav a:hover {
   color: var(--color-text);
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(232, 133, 61, 0.08);
 }
 
 .navbar-nav a.active {
   color: var(--color-text);
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(232, 133, 61, 0.10);
 }
 
 .navbar-user .username {
@@ -319,8 +319,8 @@ body > * {
 
 .card:hover {
   background: var(--color-bg-card-hover);
-  border-color: rgba(255, 255, 255, 0.18);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  border-color: rgba(232, 133, 61, 0.15);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25), 0 0 20px rgba(232, 133, 61, 0.06);
 }
 
 .card-title {
@@ -524,8 +524,8 @@ body > * {
 
 .btn-ghost:hover {
   color: var(--color-text);
-  border-color: rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(232, 133, 61, 0.2);
+  background: rgba(232, 133, 61, 0.06);
 }
 
 .btn-block {
@@ -629,9 +629,9 @@ body > * {
 
 .rec-card:hover {
   background: var(--color-bg-card-hover);
-  border-color: rgba(255, 255, 255, 0.12);
+  border-color: rgba(232, 133, 61, 0.2);
   transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-lg), 0 0 30px rgba(232, 133, 61, 0.08);
 }
 
 .rec-card:hover::before {
@@ -818,7 +818,7 @@ body > * {
 
 .history-item:hover {
   background: var(--color-bg-card-hover);
-  border-color: rgba(255, 255, 255, 0.12);
+  border-color: rgba(232, 133, 61, 0.15);
 }
 
 .history-header {
@@ -870,7 +870,7 @@ body > * {
 }
 
 .rec-item:hover {
-  border-color: rgba(255, 255, 255, 0.12);
+  border-color: rgba(232, 133, 61, 0.15);
   background: var(--color-surface-alt);
 }
 
@@ -1036,7 +1036,7 @@ body > * {
 }
 
 .users-table tr:hover {
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(232, 133, 61, 0.04);
 }
 
 .users-table .user-id {
@@ -1208,9 +1208,9 @@ body > * {
   inset: 0;
   background: linear-gradient(
     100deg,
-    rgba(10, 10, 15, 0.75) 0%,
-    rgba(10, 10, 15, 0.5) 50%,
-    rgba(12, 12, 20, 0.2) 100%
+    rgba(26, 31, 46, 0.75) 0%,
+    rgba(26, 31, 46, 0.5) 50%,
+    rgba(26, 31, 46, 0.2) 100%
   );
 }
 
@@ -1222,7 +1222,7 @@ body > * {
   right: -80px;
   width: 160px;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(12, 12, 20, 0.95));
+  background: linear-gradient(90deg, transparent, rgba(26, 31, 46, 0.95));
 }
 
 .auth-visual-content {
@@ -1255,8 +1255,8 @@ body > * {
   position: relative;
   background: linear-gradient(
     135deg,
-    rgba(79, 140, 255, 0.04) 0%,
-    rgba(12, 12, 20, 1) 30%,
+    rgba(232, 133, 61, 0.04) 0%,
+    rgba(26, 31, 46, 1) 30%,
     var(--color-bg) 100%
   );
 }
@@ -1269,7 +1269,7 @@ body > * {
   left: -10%;
   width: 300px;
   height: 300px;
-  background: radial-gradient(circle, rgba(79, 140, 255, 0.08) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(232, 133, 61, 0.08) 0%, transparent 70%);
   border-radius: 50%;
   pointer-events: none;
 }
@@ -1281,7 +1281,7 @@ body > * {
   right: 10%;
   width: 200px;
   height: 200px;
-  background: radial-gradient(circle, rgba(167, 139, 250, 0.06) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(242, 201, 76, 0.06) 0%, transparent 70%);
   border-radius: 50%;
   pointer-events: none;
 }
