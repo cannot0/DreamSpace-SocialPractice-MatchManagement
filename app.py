@@ -98,6 +98,7 @@ def login():
     session['is_admin'] = False
     clear_login_failures(ip)
     update_last_login(user['id'])
+    update_last_active(user['id'])
     logger.info("用户登录成功: %s", username)
     return redirect(url_for('index'))
 

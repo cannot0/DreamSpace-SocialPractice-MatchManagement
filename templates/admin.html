@@ -526,7 +526,10 @@
 
     function isUserOnline(lastActiveStr) {
       if (!lastActiveStr) return false;
-      const lastActive = new Date(lastActiveStr);
+      // PostgreSQL returns "YYYY-MM-DD HH:MM:SS.ffffff" which may need normalization
+      const normalized = lastActiveStr.replace(' ', 'T').split('.')[0];
+      const lastActive = new Date(normalized);
+      if (isNaN(lastActive.getTime())) return false;
       const now = new Date();
       const diffMs = now - lastActive;
       const diffMinutes = diffMs / (1000 * 60);
@@ -565,10 +568,28 @@
         const response = await fetch('/admin/online-users');
         if (response.ok) {
           const data = await response.json();
+          // Update online count display
           const onlineCountEl = document.getElementById('onlineCount');
           if (onlineCountEl) {
             onlineCountEl.textContent = data.count;
           }
+          // Build a set of online user IDs from server response
+          const onlineIds = new Set((data.online_users || []).map(u => String(u.id)));
+          // Update each row's status dot
+          const rows = document.querySelectorAll('#usersTable tbody tr');
+          rows.forEach(row => {
+            const dot = row.querySelector('.online-dot');
+            const statusText = row.querySelector('.status-text');
+            const userId = row.querySelector('td')?.textContent?.trim();
+            if (!dot || !userId) return;
+            if (onlineIds.has(userId)) {
+              dot.classList.add('active');
+              statusText.textContent = '在线';
+            } else {
+              dot.classList.remove('active');
+              statusText.textContent = dot.dataset.lastActive ? '离线' : '从未活跃';
+            }
+          });
         }
       } catch (err) {
         console.error('Failed to refresh online status:', err);
